@@ -1,0 +1,34 @@
+name: file_structure
+description: Project structure and file organization principles
+rules:
+  - id: single-responsibility
+    description: "Each file has exactly one responsibility. When a file exceeds ~200 lines or contains multiple unrelated concerns, split into separate files."
+    example: "If user.py has User model AND database functions, create user.py and user_repository.py"
+
+  - id: no-god-modules
+    description: "Never create a massive utils.py, helpers.py, or common.py. Instead use specific modules: utils/string.py, utils/validation.py, utils/date.py"
+    example: "❌ utils.py (500 lines) ✓ utils/validators.py, utils/formatters.py, utils/converters.py"
+
+  - id: explicit-public-api
+    description: "Each module's __init__.py exposes ONLY the public API. Internal imports stay in submodules. This clarifies what's public vs internal."
+    example: "# src/models/__init__.py\\nfrom .user import User\\nfrom .post import Post\\n__all__ = ['User', 'Post']"
+
+  - id: extra-for-specific-code
+    description: "Experimental, specialized, or optional features live in an 'extra/' subdirectory. The core stays minimal and focused."
+    example: "src/models/ (core) vs src/models/extra/async_models.py (optional async versions)"
+
+  - id: descriptive-module-names
+    description: "Module names describe their content. Use nouns for entities/data (user.py, post.py), verbs for actions (validate.py, process.py, transform.py)."
+    example: "✓ src/validators.py, src/user.py, src/api/routes.py ❌ src/stuff.py, src/helper.py, src/main.py"
+
+  - id: no-circular-imports
+    description: "Avoid circular imports. If A imports from B and B imports from A, refactor: extract shared code to C, or use TYPE_CHECKING guards."
+    example: "# user.py imports from post.py, post.py imports from user.py → create post_types.py and import from there"
+
+  - id: imports-organization
+    description: "Organize imports: stdlib → third-party → local. Use absolute imports, not relative imports (except in __init__.py)."
+    example: "import os\\nimport json\\nimport pytest\\nfrom pydantic import BaseModel\\nfrom src.models import User"
+
+  - id: max-file-size-heuristic
+    description: "File size guide: <100 lines (good), 100-200 lines (acceptable), >200 lines (consider splitting). This is a heuristic, not a hard rule."
+    example: "If a file hits 250 lines, evaluate if it can split into two files without creating weird imports"

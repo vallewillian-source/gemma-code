@@ -1,0 +1,34 @@
+name: python_project
+description: Standard patterns for Python project structure and conventions
+rules:
+  - id: test-location
+    description: "Tests always live in tests/ mirroring the src/ structure. Example: src/foo/bar.py → tests/foo/test_bar.py"
+    example: "If implementing src/models/user.py, create tests/models/test_user.py"
+
+  - id: fixture-reuse
+    description: "Shared fixtures live in conftest.py at the appropriate level. Never duplicate fixture definitions across test files."
+    example: "Database fixtures go in tests/conftest.py, not repeated in every test file"
+
+  - id: pathlib-over-os
+    description: "Always use pathlib.Path instead of os.path. Use Path.read_text() instead of open() context managers where simple."
+    example: "❌ os.path.join(...) ✓ Path(...) / 'subdir'"
+
+  - id: no-unnecessary-mocks
+    description: "Do not mock internal dependencies. Only mock external I/O: HTTP calls, filesystem access, external APIs. Always test real internal code."
+    example: "❌ mock.patch('src.models.User') ✓ mock.patch('requests.get')"
+
+  - id: one-module-one-test-file
+    description: "Each module has exactly one corresponding test file. One test file should never test multiple unrelated modules."
+    example: "src/services/user_service.py → tests/services/test_user_service.py (not test_services.py)"
+
+  - id: function-over-class
+    description: "Prefer pure functions over classes when state management is not necessary. Classes are for entities with mutable state or multiple related operations."
+    example: "❌ class Validator; ✓ def validate(data: dict) -> bool"
+
+  - id: type-annotations-required
+    description: "All functions must have type annotations (parameters and return types). Use modern Python 3.10+ syntax (list, dict, etc. instead of typing.List)."
+    example: "def process(items: list[str], count: int) -> dict[str, int]:"
+
+  - id: single-responsibility-modules
+    description: "Each module has a single, clear responsibility. If a file exceeds ~200 lines or has multiple unrelated functions, split it."
+    example: "❌ utils.py with 50 different utilities ✓ utils/string.py, utils/date.py, utils/validators.py"

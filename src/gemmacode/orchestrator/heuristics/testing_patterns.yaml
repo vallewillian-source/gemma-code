@@ -1,0 +1,38 @@
+name: testing_patterns
+description: Testing structure and practices for acceptance criteria and validation
+rules:
+  - id: acceptance-via-pytest
+    description: "All acceptance criteria must be expressible as pytest commands. Every acceptance test must be runnable via: pytest tests/... -v"
+    example: "✓ test_command: 'pytest tests/user/test_creation.py::test_user_with_valid_email' ❌ 'manually check the UI'"
+
+  - id: test-before-implement
+    description: "For each subtask, write tests FIRST. Tests should fail initially. Implement code to make them pass. This is TDD."
+    example: "1. Create test_user.py with failing test 2. Implement user.py 3. Tests pass"
+
+  - id: parametrize-edge-cases
+    description: "Use @pytest.mark.parametrize for edge cases: empty, None, boundary values, invalid inputs. Never use multiple nearly-identical test functions."
+    example: "@pytest.mark.parametrize('value', ['', None, 0, -1, 999]) def test_validation(value): ..."
+
+  - id: assert-inline
+    description: "Keep assertions concise and on one line. Do not assign to variable, then assert on next line. This reduces code and makes tests scan faster."
+    example: "✓ assert func() == expected ❌ result = func()\\nassert result == expected"
+
+  - id: fixtures-parametrize-not-loops
+    description: "Use @pytest.fixture and @pytest.mark.parametrize for test variations, not loops inside tests. This generates readable test IDs."
+    example: "✓ @parametrize('count', [0, 1, 5, 100]) ❌ for count in [0, 1, 5, 100]: assert func(count) > 0"
+
+  - id: arrange-act-assert
+    description: "Structure tests as: Arrange (setup) → Act (call function) → Assert (check result). Separate each phase with blank lines."
+    example: "# Arrange\\nuser = User(...) # Act\\nresult = user.validate() # Assert\\nassert result is True"
+
+  - id: descriptive-test-names
+    description: "Test names must describe the scenario and expected outcome. Use snake_case. Format: test_<function>_<condition>_<expectation>"
+    example: "✓ test_user_creation_with_duplicate_email_raises_error ❌ test_user ❌ test_1"
+
+  - id: no-test-interdependence
+    description: "Tests must be independent and order-agnostic. Never rely on one test modifying state for another test. Each test sets up its own context."
+    example: "❌ def test_a(): global_counter += 1; def test_b(): assert global_counter == 1 ✓ Each test creates its own objects"
+
+  - id: assertion-message-optional
+    description: "Assertions do not require messages if the assertion itself is clear. If unclear, add a message explaining the business logic."
+    example: "✓ assert user.age >= 18 ✓ assert price > 0, 'Price must be positive (business rule)' ❌ assert age >= 18, 'checking age'"

@@ -1,0 +1,98 @@
+name: gemmacode_project
+description: Patterns specific to gemma-code repository development and contribution
+rules:
+  - id: protocol-based-design
+    description: "Use protocols (from typing.Protocol) for abstractions, not base classes. Implement Model, Agent, Environment protocols. This enables duck typing and flexible swapping of implementations."
+    example: "✓ class MyAgent: def query(...) implements Agent protocol ❌ class MyAgent(BaseAgent)"
+
+  - id: minimal-core-philosophy
+    description: "Keep the core minimal. Complex features go in src/gemmacode/run/extra/ or src/gemmacode/models/extra/. Don't add to the core unless it's used in multiple places."
+    example: "New experimental feature → src/gemmacode/agents/extra/experimental.py, not src/gemmacode/agents/experimental.py"
+
+  - id: no-stateful-shell
+    description: "Never use stateful shell sessions. Every command runs isolated via subprocess.run(). This ensures stability and debuggability—trade minor efficiency for major correctness."
+    example: "❌ shell = subprocess.Popen(..., shell=True, interact) ✓ subprocess.run(...)"
+
+  - id: linear-history-principle
+    description: "Messages always append to history. Never mutate, reorder, or selectively filter messages. This makes debugging, validation, and external inspection straightforward."
+    example: "messages.append(new_msg), never messages[i] = new_msg"
+
+  - id: pytest-parametrize-over-loops
+    description: "In tests, use @pytest.mark.parametrize for variations, never for loops inside test functions. This generates readable test IDs and keeps test code scannable."
+    example: "✓ @parametrize('model', ['opus', 'sonnet']) ❌ for model in ['opus', 'sonnet']: ..."
+
+  - id: ruff-config-from-pyproject
+    description: "Do not configure ruff separately. All ruff config lives in pyproject.toml [tool.ruff]. Never create .ruff.toml or similar—pyproject.toml is the single source of truth."
+    example: "Check pyproject.toml for lint rules, not a separate ruff config file"
+
+  - id: config-yaml-composability
+    description: "Config system is composable: YAML files + key-value pairs merge hierarchically. Use this for flexibility without over-engineering. Don't expose every setting to config—use Python scripts for complex customization."
+    example: "mini.yaml (base) + model.model_kwargs.temperature=0.5 (override) → merged config"
+
+  - id: pydantic-v2-strict-mode
+    description: "Use Pydantic v2 features. For config validation, leverage Field descriptions, defaults, and validators. Never catch pydantic errors without re-raising context."
+    example: "class Config(BaseModel): value: str = Field(..., description='what it does')"
+
+  - id: repo-map-integration
+    description: "RepoMap is built automatically. Always inject it into agent context via template variables. It provides codebase structure for free—use it to ground model reasoning."
+    example: "Agent template vars include repo_map, repo_map_full, repo_map_path automatically"
+
+  - id: agent-template-variables
+    description: "Use template variables extensively: task, repo_map, n_model_calls, model_cost, system info. This grounds the model in concrete project context without requiring it to infer."
+    example: "{{ repo_map }} in agent prompt, {{ n_model_calls }} to track progress, {{ task }} for current goal"
+
+  - id: pathlib-everywhere
+    description: "Always use pathlib.Path, never os.path. Use Path.read_text(), Path.write_text() for simple I/O. This is consistent across the codebase and cleaner."
+    example: "✓ (Path.cwd() / 'src').glob('*.py') ❌ os.path.join(os.getcwd(), 'src', '*.py')"
+
+  - id: dataclass-for-config
+    description: "Use @dataclass (or Pydantic BaseModel) for configuration tracking, not dicts. This provides type safety and clarity about expected fields."
+    example: "@dataclass\nclass AgentConfig:\n  step_limit: int = 100\n  cost_limit: float = 3.0"
+
+  - id: exception-propagation
+    description: "Let exceptions propagate—don't catch unless explicitly necessary. Exceptions are information. They tell the user something went wrong and make debugging possible."
+    example: "❌ try: read_file() except: pass ✓ read_file()  (let exception bubble)"
+
+  - id: environment-protocol-wrapper
+    description: "When extending environments, wrap the base LocalEnvironment or delegate. Never reimplement shell execution. Environments implement Environment protocol with execute() method."
+    example: "class RestrictedEnvironment: def __init__(self, base_env: Environment) ... def execute(...): self.base_env.execute(...)"
+
+  - id: model-streaming-via-litellm
+    description: "All model interactions go through litellm. Don't call provider APIs directly. litellm handles retries, cost tracking, and provider differences uniformly."
+    example: "litellm.completion(model='anthropic/claude-3-sonnet', messages=...) in model.py, not direct anthropic client"
+
+  - id: run-scripts-as-examples
+    description: "Entry points live in src/gemmacode/run/. Each script (mini.py, hello_world.py) is a complete example. Use them as templates for custom workflows—don't hide logic in libraries."
+    example: "To customize: copy mini.py → my_agent.py, modify, run as: python src/gemmacode/run/my_agent.py"
+
+  - id: no-mocking-internal-code
+    description: "In tests, never mock internal code. Only mock external I/O: HTTP, file reads (when not testing file handling), database. Internal code should be tested as-is."
+    example: "❌ mock.patch('src.agents.DefaultAgent.query') ✓ mock.patch('requests.post')"
+
+  - id: test-fixtures-in-conftest
+    description: "Shared test fixtures go in tests/conftest.py at appropriate levels. Fixtures at module level should be in module-specific conftest, not duplicated."
+    example: "tests/conftest.py for shared setup, tests/agents/conftest.py for agent-specific fixtures"
+
+  - id: integration-tests-preferred
+    description: "Integration tests over unit tests. Test the actual flow (agent + model + environment) rather than mocking layers. This catches real integration issues."
+    example: "✓ Test full agent.run() with real subprocess ❌ Mock query() and execute() separately"
+
+  - id: concise-code-wins
+    description: "This repo rewards brevity and clarity. Single-line assertions, no unnecessary variables, inline docstrings only if logically complex. Short code is easier to understand and modify."
+    example: "assert func() == expected, not result = func(); assert result == expected"
+
+  - id: rich-console-for-output
+    description: "Use rich.console.Console for formatted terminal output. It's already integrated (InteractiveAgent uses it). Use [bold], [green], spinners for UX clarity."
+    example: "console.print(f'[bold green]✓ Task complete[/]') instead of print('Task complete')"
+
+  - id: version-in-init
+    description: "Semantic version lives in src/gemmacode/__init__.py as __version__ string. Update it when releasing. Tools like setuptools.dynamic pick it up automatically."
+    example: "__version__ = '2.2.8'  in __init__.py, pulled into pyproject.toml via setuptools.dynamic"
+
+  - id: global-config-dir-pattern
+    description: "Global config lives in ~/.config/gemma-code/ (set via MSWEA_GLOBAL_CONFIG_DIR env). Credentials, per-user settings go here. Never hardcode API keys."
+    example: "Models loaded from env vars or global config, not baked into code"
+
+  - id: command-config-yaml-driven
+    description: "Bash commands the agent can run are defined in YAML config files under src/gemmacode/config/commands/. Don't hardcode bash commands—use config for flexibility."
+    example: "src/gemmacode/config/commands/ defines what bash commands are available, loaded by agent templates"
