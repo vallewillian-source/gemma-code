@@ -3038,6 +3038,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">gemmacode.models.utils.anthropic_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">_reorder_anthropic_thinking_blocks</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">gemmacode.models.utils.cache_control</span><span class="w"> </span><span class="kn">import</span> <span class="n">set_cache_control</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">gemmacode.models.utils.openai_multimodal</span><span class="w"> </span><span class="kn">import</span> <span class="n">expand_multimodal_content</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">gemmacode.models.utils.tool_calls</span><span class="w"> </span><span class="kn">import</span> <span class="n">collect_chat_tool_calls</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">gemmacode.models.utils.retry</span><span class="w"> </span><span class="kn">import</span> <span class="n">retry</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">"requesty_model"</span><span class="p">)</span>
@@ -3147,8 +3148,7 @@
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_parse_actions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">response</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">"""Parse tool calls from the response. Raises FormatError if unknown tool."""</span>
-        <span class="n">tool_calls</span> <span class="o">=</span> <span class="n">response</span><span class="p">[</span><span class="s2">"choices"</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">"message"</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"tool_calls"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]</span>
-        <span class="n">tool_calls</span> <span class="o">=</span> <span class="p">[</span><span class="n">_DictToObj</span><span class="p">(</span><span class="n">tc</span><span class="p">)</span> <span class="k">for</span> <span class="n">tc</span> <span class="ow">in</span> <span class="n">tool_calls</span><span class="p">]</span>
+        <span class="n">tool_calls</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">collect_chat_tool_calls</span><span class="p">(</span><span class="n">response</span><span class="p">[</span><span class="s2">"choices"</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">"message"</span><span class="p">])</span>
         <span class="k">return</span> <span class="n">parse_toolcall_actions</span><span class="p">(</span><span class="n">tool_calls</span><span class="p">,</span> <span class="n">format_error_template</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">format_error_template</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">format_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
@@ -3179,17 +3179,6 @@
                 <span class="p">},</span>
             <span class="p">}</span>
         <span class="p">}</span>
-
-
-<span class="k">class</span><span class="w"> </span><span class="nc">_DictToObj</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Simple wrapper to convert dict to object with attribute access."""</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_d</span> <span class="o">=</span> <span class="n">d</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"id"</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">function</span> <span class="o">=</span> <span class="n">_DictToObj</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"function"</span><span class="p">,</span> <span class="p">{}))</span> <span class="k">if</span> <span class="s2">"function"</span> <span class="ow">in</span> <span class="n">d</span> <span class="k">else</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"name"</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"arguments"</span><span class="p">)</span>
 </code></pre></div>
 </details>
 </div>
@@ -3557,10 +3546,10 @@
 
                   <details class="mkdocstrings-source">
                     <summary>Source code in <code>src/gemmacode/models/requesty_model.py</code></summary>
-                    <div class="highlight"><table class="highlighttable"><tbody><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">61</span>
-<span class="normal">62</span>
+                    <div class="highlight"><table class="highlighttable"><tbody><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">62</span>
 <span class="normal">63</span>
-<span class="normal">64</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="normal">64</span>
+<span class="normal">65</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">RequestyModelConfig</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_api_url</span> <span class="o">=</span> <span class="s2">"https://router.requesty.ai/v1/chat/completions"</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_api_key</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">"REQUESTY_API_KEY"</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span>
@@ -3644,8 +3633,7 @@
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>src/gemmacode/models/requesty_model.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tbody><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">101</span>
-<span class="normal">102</span>
+              <div class="highlight"><table class="highlighttable"><tbody><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">102</span>
 <span class="normal">103</span>
 <span class="normal">104</span>
 <span class="normal">105</span>
@@ -3657,7 +3645,8 @@
 <span class="normal">111</span>
 <span class="normal">112</span>
 <span class="normal">113</span>
-<span class="normal">114</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">query</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">messages</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="normal">114</span>
+<span class="normal">115</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">query</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">messages</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
     <span class="k">for</span> <span class="n">attempt</span> <span class="ow">in</span> <span class="n">retry</span><span class="p">(</span><span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">,</span> <span class="n">abort_exceptions</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">abort_exceptions</span><span class="p">):</span>
         <span class="k">with</span> <span class="n">attempt</span><span class="p">:</span>
             <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_query</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_prepare_messages_for_api</span><span class="p">(</span><span class="n">messages</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>

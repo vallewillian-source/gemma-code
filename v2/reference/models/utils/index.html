@@ -2665,7 +2665,9 @@
 
     <span class="k">if</span> <span class="n">resolved_model_name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"ollama/"</span><span class="p">):</span>
         <span class="n">model_kwargs</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">"model_kwargs"</span><span class="p">,</span> <span class="p">{})</span>
-        <span class="n">model_kwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">"api_base"</span><span class="p">,</span> <span class="n">get_local_model_kwargs</span><span class="p">()[</span><span class="s2">"api_base"</span><span class="p">])</span>
+        <span class="n">local_model_kwargs</span> <span class="o">=</span> <span class="n">get_local_model_kwargs</span><span class="p">()</span>
+        <span class="n">model_kwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">"api_base"</span><span class="p">,</span> <span class="n">local_model_kwargs</span><span class="p">[</span><span class="s2">"api_base"</span><span class="p">])</span>
+        <span class="n">model_kwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">"num_ctx"</span><span class="p">,</span> <span class="n">local_model_kwargs</span><span class="p">[</span><span class="s2">"num_ctx"</span><span class="p">])</span>
         <span class="n">config</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">"cost_tracking"</span><span class="p">,</span> <span class="s2">"ignore_errors"</span><span class="p">)</span>
 
     <span class="n">model_class</span> <span class="o">=</span> <span class="n">get_model_class</span><span class="p">(</span><span class="n">resolved_model_name</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"model_class"</span><span class="p">,</span> <span class="s2">""</span><span class="p">))</span>
@@ -2780,7 +2782,9 @@
 <span class="normal">65</span>
 <span class="normal">66</span>
 <span class="normal">67</span>
-<span class="normal">68</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">get_model</span><span class="p">(</span><span class="n">input_model_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Model</span><span class="p">:</span>
+<span class="normal">68</span>
+<span class="normal">69</span>
+<span class="normal">70</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">get_model</span><span class="p">(</span><span class="n">input_model_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Model</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Get an initialized model object from any kind of user input or settings."""</span>
     <span class="n">resolved_model_name</span> <span class="o">=</span> <span class="n">get_model_name</span><span class="p">(</span><span class="n">input_model_name</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">config</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -2790,7 +2794,9 @@
 
     <span class="k">if</span> <span class="n">resolved_model_name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"ollama/"</span><span class="p">):</span>
         <span class="n">model_kwargs</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">"model_kwargs"</span><span class="p">,</span> <span class="p">{})</span>
-        <span class="n">model_kwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">"api_base"</span><span class="p">,</span> <span class="n">get_local_model_kwargs</span><span class="p">()[</span><span class="s2">"api_base"</span><span class="p">])</span>
+        <span class="n">local_model_kwargs</span> <span class="o">=</span> <span class="n">get_local_model_kwargs</span><span class="p">()</span>
+        <span class="n">model_kwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">"api_base"</span><span class="p">,</span> <span class="n">local_model_kwargs</span><span class="p">[</span><span class="s2">"api_base"</span><span class="p">])</span>
+        <span class="n">model_kwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">"num_ctx"</span><span class="p">,</span> <span class="n">local_model_kwargs</span><span class="p">[</span><span class="s2">"num_ctx"</span><span class="p">])</span>
         <span class="n">config</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">"cost_tracking"</span><span class="p">,</span> <span class="s2">"ignore_errors"</span><span class="p">)</span>
 
     <span class="n">model_class</span> <span class="o">=</span> <span class="n">get_model_class</span><span class="p">(</span><span class="n">resolved_model_name</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"model_class"</span><span class="p">,</span> <span class="s2">""</span><span class="p">))</span>
@@ -2830,9 +2836,7 @@
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>src/gemmacode/models/__init__.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tbody><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">71</span>
-<span class="normal">72</span>
-<span class="normal">73</span>
+              <div class="highlight"><table class="highlighttable"><tbody><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">73</span>
 <span class="normal">74</span>
 <span class="normal">75</span>
 <span class="normal">76</span>
@@ -2842,7 +2846,9 @@
 <span class="normal">80</span>
 <span class="normal">81</span>
 <span class="normal">82</span>
-<span class="normal">83</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">get_model_name</span><span class="p">(</span><span class="n">input_model_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="normal">83</span>
+<span class="normal">84</span>
+<span class="normal">85</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">get_model_name</span><span class="p">(</span><span class="n">input_model_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Get a model name from any kind of user input or settings."""</span>
     <span class="k">if</span> <span class="n">config</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">config</span> <span class="o">=</span> <span class="p">{}</span>
@@ -2885,9 +2891,7 @@ Otherwise, the model_name is used to select the best model class.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>src/gemmacode/models/__init__.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tbody><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">100</span>
-<span class="normal">101</span>
-<span class="normal">102</span>
+              <div class="highlight"><table class="highlighttable"><tbody><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">102</span>
 <span class="normal">103</span>
 <span class="normal">104</span>
 <span class="normal">105</span>
@@ -2906,7 +2910,9 @@ Otherwise, the model_name is used to select the best model class.</p>
 <span class="normal">118</span>
 <span class="normal">119</span>
 <span class="normal">120</span>
-<span class="normal">121</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">get_model_class</span><span class="p">(</span><span class="n">model_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">model_class</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">type</span><span class="p">:</span>
+<span class="normal">121</span>
+<span class="normal">122</span>
+<span class="normal">123</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">get_model_class</span><span class="p">(</span><span class="n">model_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">model_class</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">type</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Select the best model class.</span>
 
 <span class="sd">    If a model_class is provided (as shortcut name, or as full import path,</span>
