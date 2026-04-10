@@ -7,12 +7,14 @@ import logging
 import traceback
 from contextlib import nullcontext
 from pathlib import Path
+from typing import Literal
 
 from jinja2 import StrictUndefined, Template
 from pydantic import BaseModel
 
 from gemmacode import Environment, Model, __version__
 from gemmacode.exceptions import InterruptAgentFlow, LimitsExceeded
+from gemmacode.research import ResearchGate
 from gemmacode.utils.serialize import recursive_merge
 
 
@@ -29,6 +31,8 @@ class AgentConfig(BaseModel):
     """Stop agent after exceeding (!) this cost."""
     output_path: Path | None = None
     """Save the trajectory to this path."""
+    research_mode: Literal["strict", "balanced", "off"] = "balanced"
+    """Controls how strongly the runtime enforces the research phase."""
 
 
 class DefaultAgent:
@@ -42,6 +46,7 @@ class DefaultAgent:
         self.logger = logging.getLogger("agent")
         self.cost = 0.0
         self.n_calls = 0
+        self.research_gate: ResearchGate | None = None
 
     def get_template_vars(self, **kwargs) -> dict:
         return recursive_merge(
@@ -49,7 +54,18 @@ class DefaultAgent:
             self.env.get_template_vars(),
             self.model.get_template_vars(),
             {"n_model_calls": self.n_calls, "model_cost": self.cost},
-            {"repo_map": "", "repo_map_full": "", "repo_map_path": "", "repo_map_full_path": ""},
+            {
+                "repo_map": "",
+                "repo_map_full": "",
+                "repo_map_path": "",
+                "repo_map_full_path": "",
+                "repo_research": "",
+                "repo_research_path": "",
+                "repo_research_full_path": "",
+                "research_mode": self.config.research_mode,
+                "research_phase": "research",
+                "implementation_phase": "implementation",
+            },
             self.extra_template_vars,
             kwargs,
         )
@@ -89,7 +105,21 @@ class DefaultAgent:
 
     def run(self, task: str = "", **kwargs) -> dict:
         """Run step() until agent is finished. Returns dictionary with exit_status, submission keys."""
-        self.extra_template_vars |= {"task": task, **kwargs}
+        runtime_kwargs = dict(kwargs)
+        research_plan = runtime_kwargs.pop("research_plan", None)
+        if research_plan:
+            self.research_gate = ResearchGate.from_payload(research_plan)
+            if self.research_gate and self.research_gate.plan.mode == "off":
+                self.research_gate.phase = "implementation"
+        else:
+            self.research_gate = None
+        if self.research_gate:
+            runtime_kwargs |= {
+                "research_mode": self.research_gate.plan.mode,
+                "research_phase": self.research_gate.phase,
+                "implementation_phase": "implementation",
+            }
+        self.extra_template_vars |= {"task": task, **runtime_kwargs}
         self.messages = []
         with self._status_scope("Carregando contexto inicial", color="cyan", done="Contexto inicial pronto"):
             self.add_messages(
@@ -137,9 +167,25 @@ class DefaultAgent:
         """Execute actions in message, add observation messages, return them."""
         actions = message.get("extra", {}).get("actions", [])
         with self._status_scope("Executando ações", detail=f"{len(actions)} ação(ões)", color="magenta", done="Ações concluídas"):
-            outputs = [self.env.execute(action) for action in actions]
+            outputs = []
+            for action in actions:
+                output = self._execute_action(action)
+                outputs.append(output)
+                if output.get("extra", {}).get("blocked"):
+                    break
         with self._status_scope("Processando observações", color="green", done="Observações incorporadas"):
             return self.add_messages(*self.model.format_observation_messages(message, outputs, self.get_template_vars()))
+
+    def _execute_action(self, action: dict) -> dict:
+        command = action.get("command", "")
+        if self.research_gate:
+            decision = self.research_gate.evaluate_command(command)
+            if not decision.allowed:
+                return self.research_gate.blocked_output(command, decision.reason)
+            output = self.env.execute(action)
+            self.research_gate.record_execution(command, output)
+            return output
+        return self.env.execute(action)
 
     def serialize(self, *extra_dicts) -> dict:
         """Serialize agent state to a json-compatible nested dictionary for saving."""
@@ -158,6 +204,7 @@ class DefaultAgent:
                 "mini_version": __version__,
                 "exit_status": last_extra.get("exit_status", ""),
                 "submission": last_extra.get("submission", ""),
+                "research": self.research_gate.to_dict() if self.research_gate else {},
             },
             "messages": self.messages,
             "trajectory_format": "gemma-code-1.1",

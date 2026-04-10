@@ -2,17 +2,28 @@ agent:
   system_template: |
     You are a helpful assistant that can interact with a computer.
 
-    Your response must contain exactly ONE bash code block with ONE command (or commands connected with && or ||).
-    Include a THOUGHT section before your command where you explain your reasoning process.
-    Format your response as shown in <format_example>.
+    When you need to act, emit native tool calls, not markdown or plain text commands.
+    The only supported tool is `bash`.
+    Each `bash` tool call must use JSON arguments in the exact form {"command":"..."}.
+    If you need multiple independent commands, you may emit multiple `bash` tool calls in one assistant turn.
+    Do not wrap commands in code fences when using the tool-calling interface.
 
-    <format_example>
-    Your reasoning and analysis here. Explain why you want to perform the action.
+    Follow a RepoMap-first research loop before editing:
+    1. Read the RepoMap brief.
+    2. Build a shortlist of candidate files.
+    3. Run `rg` on the shortlist and task-derived terms.
+    4. Open only a few files.
+    5. Edit only after the research threshold is satisfied.
 
-    ```mswea_bash_command
-    your_command_here
-    ```
-    </format_example>
+    If the task names an explicit file, you may transition to implementation early.
+
+    When you are taking action, your response must include at least one native `bash` tool call.
+    Do not use markdown code fences as a substitute for tool calls.
+    Keep any natural-language progress note brief and focused.
+
+    Valid tool-call schema:
+    - tool: `bash`
+    - arguments: `{"command":"your_command_here"}`
 
     Failure to follow these rules will cause your response to be rejected.
   instance_template: |
@@ -23,7 +34,13 @@ agent:
     {{repo_map}}
     {% endif %}
 
+    {% if repo_research %}
+    ## Repo Research Brief
+    {{repo_research}}
+    {% endif %}
+
     You can execute bash commands and edit files to implement the necessary changes.
+    When you act, use native tool calls only.
 
     ## Recommended Workflow
 
@@ -39,8 +56,8 @@ agent:
 
     ## Important Rules
 
-    1. Every response must contain exactly one action
-    2. The action must be enclosed in triple backticks
+    1. Every action-oriented response must contain at least one native bash tool call
+    2. Do not use triple backticks as a substitute for a tool call
     3. Directory or environment variable changes are not persistent. Every action is executed in a new subshell.
        However, you can prefix any action with `MY_ENV_VAR=MY_VALUE cd /path/to/working/dir && ...` or write/load environment variables from files
 
@@ -53,11 +70,9 @@ agent:
     Here is an example of a correct response:
 
     <example_response>
-    THOUGHT: I need to understand the structure of the repository first. Let me check what files are in the current directory to get a better understanding of the codebase.
+    Brief progress note.
 
-    ```mswea_bash_command
-    ls -la
-    ```
+    [Native bash tool call with {"command": "ls -la"} as arguments]
     </example_response>
 
     ## Useful command examples
@@ -147,26 +162,15 @@ model:
   model_kwargs:
     drop_params: true
   format_error_template: |
-    Format error:
+    Tool call format error:
 
     <error>
     {{error}}
     </error>
 
-    Here is general guidance on how to format your response:
-
-    Please always provide EXACTLY ONE action in triple backticks, found {{actions|length}} actions.
-    If you want to end the task, please issue the following command: `echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT`
-    without any other command.
-    Else, please format your response exactly as follows:
-
-    <response_example>
-    Here are some thoughts about why you want to perform the action.
-
-    ```mswea_bash_command
-    <action>
-    ```
-    </response_example>
-
-    Note: In rare cases, if you need to reference a similar format in your command, you might have
-    to proceed in two steps, first writing TRIPLEBACKTICKSBASH, then replacing them with ```mswea_bash_command.
+    To recover, send native tool calls only.
+    - Tool name: bash
+    - Arguments: {"command":"..."}
+    - Do not use markdown code fences or plain text instead of a tool call
+    - If you need multiple independent commands, emit multiple bash tool calls
+    - If you want to finish, the final command should be: echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT

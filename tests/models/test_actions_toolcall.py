@@ -68,7 +68,7 @@ class TestParseToolcallActions:
         tool_call.id = "call_1"
         with pytest.raises(FormatError) as exc_info:
             parse_toolcall_actions([tool_call], format_error_template="{{ error }}")
-        assert "Missing 'command' argument" in exc_info.value.messages[0]["content"]
+        assert "Missing `command` argument" in exc_info.value.messages[0]["content"]
 
 
 class TestFormatToolcallObservationMessages:

@@ -8,13 +8,13 @@ from typing import Any, Literal
 import litellm
 from pydantic import BaseModel
 
-from gemmacode.models import GLOBAL_MODEL_STATS
 from gemmacode.models.utils.actions_toolcall_response import (
     BASH_TOOL_RESPONSE_API,
     format_toolcall_observation_messages,
     parse_toolcall_actions_response,
 )
 from gemmacode.models.utils.retry import retry
+from gemmacode.models.utils.toolcall_retry import query_with_toolcall_format_retry
 
 logger = logging.getLogger("portkey_response_model")
 
@@ -92,14 +92,22 @@ class PortkeyResponseAPIModel:
         return result
 
     def query(self, messages: list[dict[str, str]], **kwargs) -> dict:
-        for attempt in retry(logger=logger, abort_exceptions=self.abort_exceptions):
-            with attempt:
-                response = self._query(self._prepare_messages_for_api(messages), **kwargs)
-        cost_output = self._calculate_cost(response)
-        GLOBAL_MODEL_STATS.add(cost_output["cost"])
+        def query_once(current_messages: list[dict]) -> object:
+            for attempt in retry(logger=logger, abort_exceptions=self.abort_exceptions):
+                with attempt:
+                    return self._query(self._prepare_messages_for_api(current_messages), **kwargs)
+            raise RuntimeError("API retry loop exhausted without returning a response.")
+
+        response, actions, cost_output = query_with_toolcall_format_retry(
+            messages=messages,
+            query_once=query_once,
+            parse_actions=self._parse_actions,
+            calculate_cost=self._calculate_cost,
+            logger=logger,
+        )
         message = response.model_dump() if hasattr(response, "model_dump") else dict(response)
         message["extra"] = {
-            "actions": self._parse_actions(response),
+            "actions": actions,
             **cost_output,
             "timestamp": time.time(),
         }

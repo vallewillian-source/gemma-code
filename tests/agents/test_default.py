@@ -1,10 +1,13 @@
 from pathlib import Path
+import subprocess
 
 import pytest
 import yaml
 
 from gemmacode.agents.default import DefaultAgent
 from gemmacode.environments.local import LocalEnvironment
+from gemmacode.repomap import build_repo_index
+from gemmacode.research import build_research_plan
 from gemmacode.models.test_models import (
     DeterministicModel,
     DeterministicResponseAPIToolcallModel,
@@ -423,3 +426,67 @@ def test_empty_actions_handling(model_factory):
     assert info["exit_status"] == "Submitted"
     assert info["submission"] == "done\n"
     assert agent.n_calls == 2
+
+
+def test_research_gate_blocks_early_edit_and_allows_after_exploration(tmp_path: Path, default_config):
+    """Test that the research gate blocks early edits and opens up after RepoMap-guided exploration."""
+    repo_root = tmp_path / "repo"
+    repo_root.mkdir()
+    subprocess.run(["git", "init", "-q"], cwd=repo_root, check=True)
+    (repo_root / ".gitignore").write_text(".gemmacode/\n")
+    (repo_root / "pyproject.toml").write_text("[project]\nname = 'demo'\nversion = '0.1.0'\n")
+    (repo_root / "src").mkdir()
+    (repo_root / "src" / "auth").mkdir(parents=True)
+    (repo_root / "src" / "auth" / "service.py").write_text(
+        '"""Authentication helpers."""\n\n\ndef login(user):\n    return user\n'
+    )
+    artifacts = build_repo_index(repo_root, budget_chars=4_000)
+    research_plan = build_research_plan(
+        task="Improve the authentication flow",
+        repo_index=artifacts.index,
+        repo_root=repo_root,
+        repo_map_path=artifacts.repo_map_path,
+        repo_map_full_path=artifacts.repo_map_full_path,
+        mode="balanced",
+    )
+
+    agent = DefaultAgent(
+        model=make_text_model(
+            [
+                (
+                    "Too early to edit",
+                    [
+                        {
+                            "command": "python -c \"from pathlib import Path; p=Path('src/auth/service.py'); p.write_text(p.read_text().replace('login', 'auth_login'))\"",
+                        }
+                    ],
+                ),
+                ("Search first", [{"command": "rg auth src"}]),
+                ("Open file", [{"command": "sed -n 1,120p src/auth/service.py"}]),
+                (
+                    "Now edit",
+                    [
+                        {
+                            "command": "python -c \"from pathlib import Path; p=Path('src/auth/service.py'); p.write_text(p.read_text().replace('login', 'auth_login'))\"",
+                        }
+                    ],
+                ),
+                (
+                    "Finish",
+                    [{"command": "echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT && echo done"}],
+                ),
+            ]
+        ),
+        env=LocalEnvironment(cwd=str(repo_root)),
+        **{**default_config, "output_path": tmp_path / "trajectory.json"},
+    )
+
+    info = agent.run("Improve the authentication flow", research_plan=research_plan.to_dict())
+    assert info["exit_status"] == "Submitted"
+    assert "done" in info["submission"]
+    blocked_messages = [msg for msg in agent.messages if msg.get("extra", {}).get("blocked")]
+    assert blocked_messages, "The first edit should have been blocked by the research gate."
+    assert agent.research_gate is not None
+    assert agent.research_gate.phase == "implementation"
+    assert agent.research_gate.relevant_searches >= 1
+    assert agent.research_gate.open_reads >= 1

@@ -91,7 +91,9 @@ def test_gemma_code_command_calls_run_interactive():
         assert args[0] == mock_model  # model
         assert args[1] == mock_environment  # env
         # Verify agent.run was called with the task
-        mock_agent.run.assert_called_once_with("Test task")
+        mock_agent.run.assert_called_once()
+        assert mock_agent.run.call_args.args[0] == "Test task"
+        assert mock_agent.run.call_args.kwargs["research_plan"]["task"] == "Test task"
 
 
 def test_gemma_code_calls_prompt_when_no_task_provided():
@@ -135,7 +137,9 @@ def test_gemma_code_calls_prompt_when_no_task_provided():
         # Verify get_agent was called
         mock_get_agent.assert_called_once()
         # Verify agent.run was called with the task from prompt
-        mock_agent.run.assert_called_once_with("User provided task")
+        mock_agent.run.assert_called_once()
+        assert mock_agent.run.call_args.args[0] == "User provided task"
+        assert mock_agent.run.call_args.kwargs["research_plan"]["task"] == "User provided task"
 
 
 def test_init_short_circuits_agent_execution():
@@ -179,6 +183,8 @@ def test_no_repo_map_flag_disables_injection():
     with (
         patch("gemmacode.run.mini.configure_if_first_time"),
         patch("gemmacode.run.mini.load_repo_map") as mock_load_repo_map,
+        patch("gemmacode.run.mini.build_research_plan") as mock_build_research_plan,
+        patch("gemmacode.run.mini.save_research_plan") as mock_save_research_plan,
         patch("gemmacode.run.mini.get_agent") as mock_get_agent,
         patch("gemmacode.run.mini.get_model") as mock_get_model,
         patch("gemmacode.run.mini.get_environment") as mock_get_env,
@@ -189,8 +195,27 @@ def test_no_repo_map_flag_disables_injection():
         mock_environment = Mock()
         mock_get_env.return_value = mock_environment
         mock_get_config.return_value = {"agent": {"system_template": "test"}, "env": {}, "model": {}}
+        mock_load_repo_map.return_value = Mock(
+            index=Mock(files=[], fingerprint="abc"),
+            repo_map_path=Path(".gemmacode/repo_map.md"),
+            repo_map_full_path=Path(".gemmacode/repo_map_full.md"),
+            repo_map="repo map",
+            repo_map_full="repo map full",
+            reused=True,
+        )
+        mock_plan = Mock(
+            task_kind="broad",
+            budgets={"max_searches": 4, "max_open_reads": 4},
+            mode="balanced",
+            phase="research",
+            to_markdown=Mock(return_value="research brief"),
+            to_dict=Mock(return_value={"mode": "balanced"}),
+        )
+        mock_build_research_plan.return_value = mock_plan
+        mock_save_research_plan.return_value = (Path(".gemmacode/research_plan.json"), Path(".gemmacode/research_plan.md"))
 
         mock_agent = Mock()
+        mock_agent.extra_template_vars = {}
         mock_agent.run.return_value = {"exit_status": "Success", "submission": "Result"}
         mock_get_agent.return_value = mock_agent
 
@@ -206,8 +231,13 @@ def test_no_repo_map_flag_disables_injection():
             environment_class=None,
         )
 
-        mock_load_repo_map.assert_not_called()
-        mock_agent.run.assert_called_once_with("Test task")
+        mock_load_repo_map.assert_called_once()
+        mock_build_research_plan.assert_called_once()
+        mock_save_research_plan.assert_called_once()
+        assert mock_agent.extra_template_vars["repo_map"] == ""
+        assert mock_agent.extra_template_vars["repo_research"] == "research brief"
+        assert mock_agent.extra_template_vars["research_mode"] == "balanced"
+        mock_agent.run.assert_called_once_with("Test task", research_plan={"mode": "balanced"})
 
 
 def test_gemma_code_with_explicit_model():
@@ -253,7 +283,9 @@ def test_gemma_code_with_explicit_model():
         # Verify get_agent was called
         mock_get_agent.assert_called_once()
         # Verify agent.run was called
-        mock_agent.run.assert_called_once_with("Test task with explicit model")
+        mock_agent.run.assert_called_once()
+        assert mock_agent.run.call_args.args[0] == "Test task with explicit model"
+        assert mock_agent.run.call_args.kwargs["research_plan"]["task"] == "Test task with explicit model"
 
 
 def test_yolo_mode_sets_correct_agent_config():
@@ -294,7 +326,9 @@ def test_yolo_mode_sets_correct_agent_config():
         # The config (third positional arg) should contain the mode
         assert args[2].get("mode") == "yolo"
         # Verify agent.run was called
-        mock_agent.run.assert_called_once_with("Test yolo task")
+        mock_agent.run.assert_called_once()
+        assert mock_agent.run.call_args.args[0] == "Test yolo task"
+        assert mock_agent.run.call_args.kwargs["research_plan"]["task"] == "Test yolo task"
 
 
 def test_no_yolo_mode_sets_correct_agent_config():
@@ -336,7 +370,9 @@ def test_no_yolo_mode_sets_correct_agent_config():
         # The config (third positional arg) should contain confirm mode when yolo is disabled
         assert args[2].get("mode") == "confirm"
         # Verify agent.run was called
-        mock_agent.run.assert_called_once_with("Test confirm task")
+        mock_agent.run.assert_called_once()
+        assert mock_agent.run.call_args.args[0] == "Test confirm task"
+        assert mock_agent.run.call_args.kwargs["research_plan"]["task"] == "Test confirm task"
 
 
 def test_no_yolo_config_spec_disables_yolo():
@@ -390,6 +426,7 @@ def test_gemma_code_help():
     assert "--task" in clean_output
     assert "--no-yolo" in clean_output
     assert "--no-repo-map" in clean_output
+    assert "--research-mode" in clean_output
     assert "/init" in clean_output
     assert "--output" in clean_output
 
@@ -410,6 +447,7 @@ def test_gemma_code_help_with_typer_runner():
     assert "--task" in clean_output
     assert "--no-yolo" in clean_output
     assert "--no-repo-map" in clean_output
+    assert "--research-mode" in clean_output
     assert "/init" in clean_output
     assert "--output" in clean_output
 
@@ -716,6 +754,8 @@ def test_output_file_is_created(tmp_path):
                 str(output_file),
                 "--config",
                 str(config_file),
+                "--research-mode",
+                "off",
             ],
         )
 

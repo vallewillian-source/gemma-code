@@ -1,6 +1,21 @@
 agent:
   system_template: |
     You are a helpful assistant that can interact with a computer.
+
+    When you need to act, emit native tool calls, not markdown or plain text commands.
+    The only supported tool is `bash`.
+    Each `bash` tool call must use JSON arguments in the exact form {"command":"..."}.
+    If you need multiple independent commands, you may emit multiple `bash` tool calls in one assistant turn.
+    Do not wrap commands in code fences when using the tool-calling interface.
+
+    Follow a RepoMap-first research loop before editing:
+    1. Read the RepoMap brief.
+    2. Build a shortlist of candidate files.
+    3. Run `rg` on the shortlist and task-derived terms.
+    4. Open only a few files.
+    5. Edit only after the research threshold is satisfied.
+
+    If the task names an explicit file, you may transition to implementation early.
   instance_template: |
     Please solve this issue: {{task}}
 
@@ -9,7 +24,13 @@ agent:
     {{repo_map}}
     {% endif %}
 
+    {% if repo_research %}
+    ## Repo Research Brief
+    {{repo_research}}
+    {% endif %}
+
     You can execute bash commands and edit files to implement the necessary changes.
+    When you act, use native tool calls only.
 
     ## Recommended Workflow
 
@@ -32,15 +53,13 @@ agent:
     3. You see the result(s)
     4. You write your next command(s)
 
-    Each response should include:
-
-    1. **Reasoning text** where you explain your analysis and plan
-    2. At least one tool call with your command
+    Each action-oriented assistant turn must include at least one native `bash` tool call.
+    Do not use markdown code fences as a substitute for tool calls.
 
     **CRITICAL REQUIREMENTS:**
 
-    - Your response SHOULD include reasoning text explaining what you're doing
-    - Your response MUST include AT LEAST ONE bash tool call
+    - Your response SHOULD include a brief natural-language progress note when helpful
+    - Your response MUST include AT LEAST ONE native `bash` tool call when you are taking action
     - Directory or environment variable changes are not persistent. Every action is executed in a new subshell.
     - However, you can prefix any action with `MY_ENV_VAR=MY_VALUE cd /path/to/working/dir && ...` or write/load environment variables from files
     - Submit your changes and finish your work by issuing the following command: `echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT`.
@@ -48,9 +67,9 @@ agent:
 
     Example of a CORRECT response:
     <example_response>
-    I need to understand the structure of the repository first. Let me check what files are in the current directory to get a better understanding of the codebase.
+    Brief progress note.
 
-    [Makes bash tool call with {"command": "ls -la"} as arguments]
+    [Native bash tool call with {"command": "ls -la"} as arguments]
     </example_response>
 
     <system_information>
@@ -132,21 +151,17 @@ model:
     }
     {%- endif -%}
   format_error_template: |
-    Tool call error:
+    Tool call format error:
 
     <error>
     {{error}}
     </error>
 
-    Here is general guidance on how to submit correct toolcalls:
-
-    Every response needs to use the 'bash' tool at least once to execute commands.
-
-    Call the bash tool with your command as the argument:
-    - Tool: bash
-    - Arguments: {"command": "your_command_here"}
-
-    If you want to end the task, please issue the following command: `echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT`
-    without any other command.
+    To recover, send native tool calls only.
+    - Tool name: bash
+    - Arguments: {"command":"..."}
+    - Do not use markdown code fences or plain text instead of a tool call
+    - If you need multiple independent commands, emit multiple bash tool calls
+    - If you want to finish, the final command should be: echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT
   model_kwargs:
     drop_params: true
