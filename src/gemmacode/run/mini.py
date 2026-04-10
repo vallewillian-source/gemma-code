@@ -16,8 +16,10 @@ from gemmacode.agents.utils.prompt_user import _multiline_prompt
 from gemmacode.config import builtin_config_dir, get_config_from_spec
 from gemmacode.environments import get_environment
 from gemmacode.models import get_model
+from gemmacode.runtime import get_local_model_base_url, get_local_model_name
 from gemmacode.run.utilities.config import configure_if_first_time
 from gemmacode.utils.serialize import UNSET, recursive_merge
+from gemmacode.utils.status import build_status_text
 
 DEFAULT_CONFIG_FILE = Path(os.getenv("MSWEA_MINI_CONFIG_PATH", builtin_config_dir / "mini.yaml"))
 DEFAULT_OUTPUT_FILE = global_config_dir / "last_mini_run.traj.json"
@@ -74,9 +76,10 @@ def main(
 ) -> Any:
     # fmt: on
     configure_if_first_time()
+    console.print(build_status_text("Inicializando gemma-code", "pipeline local-first", color="cyan"))
 
     # Build the config from the command line arguments
-    console.print(f"Building agent config from specs: [bold green]{config_spec}[/bold green]")
+    console.print(build_status_text("Carregando configuração", f"{len(config_spec)} spec(s)", color="blue"))
     configs = [get_config_from_spec(spec) for spec in config_spec]
     configs.append({
         "run": {
@@ -100,9 +103,17 @@ def main(
         run_task = _multiline_prompt()
         console.print("[bold green]Got that, thanks![/bold green]")
 
+    console.print(
+        build_status_text(
+            "Montando agentes",
+            f"{get_local_model_name()} @ {get_local_model_base_url()}",
+            color="magenta",
+        )
+    )
     model = get_model(config=config.get("model", {}))
     env = get_environment(config.get("environment", {}), default_type="local")
     agent = get_agent(model, env, config.get("agent", {}), default_type="interactive")
+    console.print(build_status_text("Executando agente", color="green"))
     agent.run(run_task)
     if (output_path := config.get("agent", {}).get("output_path")):
         console.print(f"Saved trajectory to [bold green]'{output_path}'[/bold green]")

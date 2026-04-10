@@ -25,6 +25,11 @@ class TestGetModelName:
         with patch.dict(os.environ, {"GEMMACODE_LOCAL_MODEL_NAME": "env-model"}, clear=True):
             assert get_model_name(None, {}) == "env-model"
 
+    def test_ollama_model_name_is_normalized(self):
+        """Test that the default Ollama model name is normalized to a concrete installed tag."""
+        with patch.dict(os.environ, {"GEMMACODE_LOCAL_MODEL_NAME": "ollama/gemma4"}, clear=True):
+            assert get_model_name(None, {}) == "ollama/gemma4:26b"
+
     def test_config_fallback(self):
         """Test that config model name is used when input and env are missing."""
         with patch.dict(os.environ, {}, clear=True):
@@ -118,6 +123,43 @@ class TestGetModel:
             # LitellmModel should not have api_key when none provided
             model_kwargs = getattr(model.config, "model_kwargs", {})
             assert "api_key" not in model_kwargs
+
+    def test_ollama_models_get_default_remote_api_base(self):
+        """Test that Ollama models automatically point to the configured remote host."""
+
+        captured = {}
+
+        def compatible_model(**kwargs):
+            captured.update(kwargs)
+            config_args = {k: v for k, v in kwargs.items() if k in ["outputs", "model_name"]}
+            if "outputs" not in config_args:
+                config_args["outputs"] = [make_output("default", [])]
+            return DeterministicModel(**config_args)
+
+        with patch.dict(os.environ, {"GEMMACODE_OLLAMA_BASE_URL": "http://192.168.0.23:11434"}, clear=True):
+            with patch("gemmacode.models.get_model_class") as mock_get_class:
+                mock_get_class.return_value = compatible_model
+                get_model("ollama/gemma4", {"outputs": [make_output("hello", [])]})
+
+        assert captured["model_kwargs"]["api_base"] == "http://192.168.0.23:11434"
+
+    def test_ollama_models_disable_cost_tracking_errors(self):
+        """Test that local Ollama models do not fail on zero-cost calculations."""
+
+        captured = {}
+
+        def compatible_model(**kwargs):
+            captured.update(kwargs)
+            config_args = {k: v for k, v in kwargs.items() if k in ["outputs", "model_name"]}
+            if "outputs" not in config_args:
+                config_args["outputs"] = [make_output("default", [])]
+            return DeterministicModel(**config_args)
+
+        with patch("gemmacode.models.get_model_class") as mock_get_class:
+            mock_get_class.return_value = compatible_model
+            get_model("ollama/gemma4:26b", {"outputs": [make_output("hello", [])]})
+
+        assert captured["cost_tracking"] == "ignore_errors"
 
     def test_get_deterministic_model(self):
         """Test that get_model can instantiate DeterministicModel via model_class parameter."""

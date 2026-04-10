@@ -8,7 +8,7 @@ import os
 import threading
 
 from gemmacode import Model
-from gemmacode.runtime import DEFAULT_LOCAL_MODEL_NAME
+from gemmacode.runtime import DEFAULT_LOCAL_MODEL_NAME, get_local_model_kwargs, normalize_local_model_name
 
 
 class GlobalModelStats:
@@ -51,6 +51,11 @@ def get_model(input_model_name: str | None = None, config: dict | None = None) -
     config = copy.deepcopy(config)
     config["model_name"] = resolved_model_name
 
+    if resolved_model_name.startswith("ollama/"):
+        model_kwargs = config.setdefault("model_kwargs", {})
+        model_kwargs.setdefault("api_base", get_local_model_kwargs()["api_base"])
+        config.setdefault("cost_tracking", "ignore_errors")
+
     model_class = get_model_class(resolved_model_name, config.pop("model_class", ""))
 
     if (
@@ -68,13 +73,13 @@ def get_model_name(input_model_name: str | None = None, config: dict | None = No
     if config is None:
         config = {}
     if input_model_name:
-        return input_model_name
+        return normalize_local_model_name(input_model_name)
     if from_config := config.get("model_name"):
-        return from_config
+        return normalize_local_model_name(from_config)
     if from_env := os.getenv("GEMMACODE_LOCAL_MODEL_NAME"):
-        return from_env
+        return normalize_local_model_name(from_env)
     if from_env := os.getenv("MSWEA_MODEL_NAME"):
-        return from_env
+        return normalize_local_model_name(from_env)
     return DEFAULT_LOCAL_MODEL_NAME
 
 

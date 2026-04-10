@@ -5,6 +5,7 @@ or https://minimal-agent.com for a tutorial on the basic building principles.
 import json
 import logging
 import traceback
+from contextlib import nullcontext
 from pathlib import Path
 
 from jinja2 import StrictUndefined, Template
@@ -60,6 +61,17 @@ class DefaultAgent:
         self.messages.extend(messages)
         return list(messages)
 
+    def _status_scope(
+        self,
+        title: str,
+        detail: str | None = None,
+        *,
+        color: str = "cyan",
+        symbol: str = "●",
+        done: str | None = None,
+    ):
+        return nullcontext()
+
     def handle_uncaught_exception(self, e: Exception) -> list[dict]:
         return self.add_messages(
             self.model.format_message(
@@ -78,20 +90,23 @@ class DefaultAgent:
         """Run step() until agent is finished. Returns dictionary with exit_status, submission keys."""
         self.extra_template_vars |= {"task": task, **kwargs}
         self.messages = []
-        self.add_messages(
-            self.model.format_message(role="system", content=self._render_template(self.config.system_template)),
-            self.model.format_message(role="user", content=self._render_template(self.config.instance_template)),
-        )
+        with self._status_scope("Carregando contexto inicial", color="cyan", done="Contexto inicial pronto"):
+            self.add_messages(
+                self.model.format_message(role="system", content=self._render_template(self.config.system_template)),
+                self.model.format_message(role="user", content=self._render_template(self.config.instance_template)),
+            )
         while True:
             try:
-                self.step()
+                with self._status_scope("Executando ciclo do agente", color="blue", done="Ciclo concluído"):
+                    self.step()
             except InterruptAgentFlow as e:
                 self.add_messages(*e.messages)
             except Exception as e:
                 self.handle_uncaught_exception(e)
                 raise
             finally:
-                self.save(self.config.output_path)
+                with self._status_scope("Salvando trajetória", color="magenta", done="Trajetória salva"):
+                    self.save(self.config.output_path)
             if self.messages[-1].get("role") == "exit":
                 break
         return self.messages[-1].get("extra", {})
@@ -111,15 +126,19 @@ class DefaultAgent:
                 }
             )
         self.n_calls += 1
-        message = self.model.query(self.messages)
+        with self._status_scope("Consultando o modelo", detail=f"chamada {self.n_calls}", color="cyan", done="Resposta recebida"):
+            message = self.model.query(self.messages)
         self.cost += message.get("extra", {}).get("cost", 0.0)
         self.add_messages(message)
         return message
 
     def execute_actions(self, message: dict) -> list[dict]:
         """Execute actions in message, add observation messages, return them."""
-        outputs = [self.env.execute(action) for action in message.get("extra", {}).get("actions", [])]
-        return self.add_messages(*self.model.format_observation_messages(message, outputs, self.get_template_vars()))
+        actions = message.get("extra", {}).get("actions", [])
+        with self._status_scope("Executando ações", detail=f"{len(actions)} ação(ões)", color="magenta", done="Ações concluídas"):
+            outputs = [self.env.execute(action) for action in actions]
+        with self._status_scope("Processando observações", color="green", done="Observações incorporadas"):
+            return self.add_messages(*self.model.format_observation_messages(message, outputs, self.get_template_vars()))
 
     def serialize(self, *extra_dicts) -> dict:
         """Serialize agent state to a json-compatible nested dictionary for saving."""
@@ -150,6 +169,7 @@ class DefaultAgent:
         """
         data = self.serialize(*extra_dicts)
         if path:
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text(json.dumps(data, indent=2))
+            with self._status_scope("Persistindo resultado", detail=str(path), color="magenta", done="Resultado persistido"):
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text(json.dumps(data, indent=2))
         return data

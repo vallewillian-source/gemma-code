@@ -150,6 +150,29 @@ def test_successful_completion_with_confirmation(model_factory):
         assert agent.n_calls == 1
 
 
+def test_non_assistant_messages_are_summarized(model_factory):
+    """Test that long context messages are summarized as status lines instead of being dumped verbatim."""
+    factory, config = model_factory
+    agent = InteractiveAgent(
+        model=factory([]),
+        env=LocalEnvironment(),
+        **config,
+    )
+
+    long_system_message = "system context " + ("x" * 500)
+
+    with patch("gemmacode.agents.interactive.console.print") as mock_print:
+        agent.add_messages(
+            {"role": "system", "content": long_system_message},
+            {"role": "user", "content": "short task"},
+        )
+
+    printed = " ".join(str(call) for call in mock_print.call_args_list)
+    assert "Contexto do sistema carregado" in printed
+    assert "Tarefa carregada" in printed
+    assert long_system_message not in printed
+
+
 def test_action_rejection_and_recovery(model_factory):
     """Test agent handles action rejection and can recover."""
     factory, config = model_factory

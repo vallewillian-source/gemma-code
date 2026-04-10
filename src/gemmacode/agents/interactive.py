@@ -7,6 +7,7 @@ There are three modes:
 """
 
 import re
+from contextlib import contextmanager
 from typing import Literal, NoReturn
 
 from rich.console import Console
@@ -16,6 +17,7 @@ from gemmacode.agents.default import AgentConfig, DefaultAgent
 from gemmacode.agents.utils.prompt_user import _multiline_prompt, prompt_session
 from gemmacode.exceptions import LimitsExceeded, Submitted, UserInterruption
 from gemmacode.models.utils.content_string import get_content_string
+from gemmacode.utils.status import build_status_text
 
 console = Console(highlight=False)
 
@@ -39,19 +41,62 @@ class InteractiveAgent(DefaultAgent):
     def _interrupt(self, content: str, *, itype: str = "UserInterruption") -> NoReturn:
         raise UserInterruption({"role": "user", "content": content, "extra": {"interrupt_type": itype}})
 
+    def _short_preview(self, content: str, *, limit: int = 120) -> str | None:
+        preview = " ".join(content.split())
+        if not preview:
+            return None
+        if len(preview) > limit:
+            return None
+        return preview
+
+    def _message_stage(self, msg: dict, role: str) -> tuple[str, str]:
+        if role == "assistant":
+            return "Resposta do modelo", "magenta"
+        if role == "system":
+            return "Contexto do sistema carregado", "cyan"
+        if role == "user" and msg.get("extra", {}).get("actions"):
+            return "Observação do ambiente recebida", "green"
+        if role == "user":
+            return "Tarefa carregada", "blue"
+        if role == "tool":
+            return "Ferramenta executada", "green"
+        if role == "exit":
+            return "Encerramento do agente", "red"
+        return role.capitalize(), "cyan"
+
+    @contextmanager
+    def _status_scope(
+        self,
+        title: str,
+        detail: str | None = None,
+        *,
+        color: str = "cyan",
+        symbol: str = "●",
+        done: str | None = None,
+    ):
+        with console.status(build_status_text(title, detail, color=color, symbol=symbol), spinner="dots", spinner_style=color):
+            yield
+        if done:
+            console.print(build_status_text(done, detail, color="green", symbol="✓"))
+
     def add_messages(self, *messages: dict) -> list[dict]:
-        # Extend supermethod to print messages
         for msg in messages:
             role, content = msg.get("role") or msg.get("type", "unknown"), get_content_string(msg)
             if role == "assistant":
                 console.print(
-                    f"\n[red][bold]gemma-code[/bold] (step [bold]{self.n_calls}[/bold], [bold]${self.cost:.2f}[/bold]):[/red]\n",
-                    end="",
-                    highlight=False,
+                    build_status_text(
+                        "Resposta do modelo",
+                        f"passo {self.n_calls} • ${self.cost:.2f}",
+                        color="magenta",
+                        symbol="↳",
+                    )
                 )
             else:
-                console.print(f"\n[bold green]{role.capitalize()}[/bold green]:\n", end="", highlight=False)
-            console.print(content, highlight=False, markup=False)
+                stage_title, stage_color = self._message_stage(msg, role)
+                detail = self._short_preview(content)
+                console.print(build_status_text(stage_title, detail, color=stage_color, symbol="↳"))
+            if role == "assistant" or (preview := self._short_preview(content)):
+                console.print(content if role == "assistant" else preview, highlight=False, markup=False)
         return super().add_messages(*messages)
 
     def query(self) -> dict:
@@ -69,8 +114,7 @@ class InteractiveAgent(DefaultAgent):
                     self.add_messages(msg)
                     return msg
         try:
-            with console.status("Waiting for the LM to respond..."):
-                return super().query()
+            return super().query()
         except LimitsExceeded:
             console.print(
                 f"Limits exceeded. Limits: {self.config.step_limit} steps, ${self.config.cost_limit}.\n"
@@ -83,7 +127,7 @@ class InteractiveAgent(DefaultAgent):
     def step(self) -> list[dict]:
         # Override the step method to handle user interruption
         try:
-            console.print(Rule())
+            console.print(Rule(style="bright_black"))
             return super().step()
         except KeyboardInterrupt:
             interruption_message = self._prompt_and_handle_slash_commands(
@@ -102,8 +146,22 @@ class InteractiveAgent(DefaultAgent):
         outputs = []
         try:
             self._ask_confirmation_or_interrupt(commands)
-            for action in actions:
-                outputs.append(self.env.execute(action))
+            with self._status_scope(
+                "Executando ações",
+                detail=f"{len(actions)} ação(ões)",
+                color="magenta",
+                done="Ações concluídas",
+            ):
+                for index, action in enumerate(actions, start=1):
+                    console.print(
+                        build_status_text(
+                            "Executando ação",
+                            f"{index}/{len(actions)}",
+                            color="magenta",
+                            symbol="→",
+                        )
+                    )
+                    outputs.append(self.env.execute(action))
         except Submitted as e:
             self._check_for_new_task_or_submit(e)
         finally:
@@ -139,6 +197,7 @@ class InteractiveAgent(DefaultAgent):
     def _ask_confirmation_or_interrupt(self, commands: list[str]) -> None:
         if not any(self._should_ask_confirmation(c) for c in commands):
             return
+        console.print(build_status_text("Aguardando confirmação", f"{len(commands)} ação(ões)", color="yellow", symbol="?"))
         prompt = (
             f"[bold yellow]Execute {len(commands)} action(s)?[/] [green][bold]Enter[/] to confirm[/], "
             "[red]type [bold]comment[/] to reject[/], or [blue][bold]/h[/] to show available commands[/]\n"
@@ -146,10 +205,11 @@ class InteractiveAgent(DefaultAgent):
         )
         match user_input := self._prompt_and_handle_slash_commands(prompt).strip():
             case "" | "/y":
-                pass  # confirmed, do nothing
+                console.print(build_status_text("Ação confirmada", color="green", symbol="✓"))
             case "/u":  # Skip execution action and get back to query
                 self._interrupt("Commands not executed. Switching to human mode", itype="UserRejection")
             case _:
+                console.print(build_status_text("Ação rejeitada", color="red", symbol="✗"))
                 self._interrupt(
                     f"Commands not executed. The user rejected your commands with the following message: {user_input}",
                     itype="UserRejection",
