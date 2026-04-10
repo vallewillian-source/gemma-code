@@ -17,6 +17,7 @@ from gemmacode.config import builtin_config_dir, get_config_from_spec
 from gemmacode.environments import get_environment
 from gemmacode.models import get_model
 from gemmacode.runtime import get_local_model_base_url, get_local_model_name
+from gemmacode.repomap import build_repo_map, find_repo_root, load_repo_map
 from gemmacode.run.utilities.config import configure_if_first_time
 from gemmacode.utils.serialize import UNSET, recursive_merge
 from gemmacode.utils.status import build_status_text
@@ -32,6 +33,7 @@ More information about the usage: [bold green]https://gemma-code.com/latest/usag
 [/not dim]
 
 The model is selected automatically by the codebase.
+Type [bold green]/init[/bold green] to build the structural RepoMap without calling the model.
 """
 
 _CONFIG_SPEC_HELP_TEXT = """Path to config files, filenames, or key-value pairs.
@@ -50,21 +52,31 @@ Examples:
 [bold green]-c swebench.yaml agent.mode=yolo[/bold green]
 
 [bold green]-c no-yolo[/bold green] to force confirmation even though yolo is enabled by default.
+
+[bold green]-c no-repo-map[/bold green] to disable RepoMap injection into the initial prompt.
 """
 
 console = Console(highlight=False)
 app = typer.Typer(rich_markup_mode="rich")
 
 
-def _split_no_yolo_config_specs(config_spec: list[str]) -> tuple[list[str], bool]:
+def _split_special_config_specs(config_spec: list[str]) -> tuple[list[str], bool, bool]:
     cleaned_specs: list[str] = []
     no_yolo_requested = False
+    no_repo_map_requested = False
     for spec in config_spec:
-        if isinstance(spec, str) and spec.strip().lower().replace("_", "-") == "no-yolo":
+        if not isinstance(spec, str):
+            cleaned_specs.append(spec)
+            continue
+        normalized = spec.strip().lower().replace("_", "-")
+        if normalized == "no-yolo":
             no_yolo_requested = True
             continue
+        if normalized == "no-repo-map":
+            no_repo_map_requested = True
+            continue
         cleaned_specs.append(spec)
-    return cleaned_specs, no_yolo_requested
+    return cleaned_specs, no_yolo_requested, no_repo_map_requested
 
 
 # fmt: off
@@ -82,18 +94,19 @@ def main(
     environment_class: str | None = typer.Option(None, "--environment-class", help="Environment class to use (e.g., 'local' or 'gemmacode.environments.local.LocalEnvironment')", rich_help_panel="Advanced"),
     task: str | None = typer.Option(None, "-t", "--task", help="Task/problem statement", show_default=False),
     yolo: bool = typer.Option(True, "-y", "--yolo/--no-yolo", help="Run without confirmation. Enabled by default."),
+    repo_map: bool = typer.Option(True, "--repo-map/--no-repo-map", help="Inject the RepoMap context into the initial prompt. Enabled by default."),
     cost_limit: float | None = typer.Option(None, "-l", "--cost-limit", help="Cost limit. Set to 0 to disable."),
     config_spec: list[str] = typer.Option([str(DEFAULT_CONFIG_FILE)], "-c", "--config", help=_CONFIG_SPEC_HELP_TEXT),
     output: Path | None = typer.Option(DEFAULT_OUTPUT_FILE, "-o", "--output", help="Output trajectory file"),
     exit_immediately: bool = typer.Option(False, "--exit-immediately", help="Exit immediately when the agent wants to finish instead of prompting.", rich_help_panel="Advanced"),
 ) -> Any:
     # fmt: on
-    configure_if_first_time()
     console.print(build_status_text("Inicializando gemma-code", "pipeline local-first", color="cyan"))
 
     # Build the config from the command line arguments
-    config_spec, no_yolo_requested = _split_no_yolo_config_specs(config_spec)
+    config_spec, no_yolo_requested, no_repo_map_requested = _split_special_config_specs(config_spec)
     yolo = yolo and not no_yolo_requested
+    repo_map = repo_map and not no_repo_map_requested
     console.print(build_status_text("Carregando configuração", f"{len(config_spec)} spec(s)", color="blue"))
     configs = [get_config_from_spec(spec) for spec in config_spec]
     configs.append({
@@ -115,9 +128,21 @@ def main(
 
     if (run_task := config.get("run", {}).get("task", UNSET)) is UNSET:
         console.print("[bold yellow]What do you want to do?[/bold yellow]")
-        console.print("[dim]Enter envia. Shift+Enter quebra linha. Use --no-yolo ou -c no-yolo para pedir confirmação.[/dim]")
+        console.print(
+            "[dim]Enter envia. Shift+Enter quebra linha. Use --no-yolo ou -c no-yolo para pedir confirmação. "
+            "Type /init to build the RepoMap without calling the model.[/dim]"
+        )
         run_task = _multiline_prompt()
         console.print("[bold green]Got that, thanks![/bold green]")
+
+    repo_root = find_repo_root(Path.cwd())
+    if str(run_task).strip() == "/init":
+        console.print(build_status_text("Construindo RepoMap", str(repo_root), color="cyan"))
+        artifacts = build_repo_map(repo_root)
+        console.print(build_status_text("RepoMap pronto", f"{artifacts.repo_map_path} • {artifacts.repo_map_full_path}", color="green"))
+        return artifacts
+
+    configure_if_first_time()
 
     console.print(
         build_status_text(
@@ -129,6 +154,32 @@ def main(
     model = get_model(config=config.get("model", {}))
     env = get_environment(config.get("environment", {}), default_type="local")
     agent = get_agent(model, env, config.get("agent", {}), default_type="interactive")
+    if repo_map:
+        console.print(build_status_text("Preparando RepoMap", str(repo_root), color="cyan"))
+        artifacts = load_repo_map(repo_root=repo_root)
+        repo_map_state = "Reutilizado" if artifacts.reused else "Atualizado"
+        console.print(
+            build_status_text(
+                f"RepoMap {repo_map_state.lower()}",
+                f"{artifacts.repo_map_path} • {artifacts.repo_map_full_path}",
+                color="green",
+            )
+        )
+        template_vars = getattr(agent, "extra_template_vars", None)
+        if not isinstance(template_vars, dict):
+            template_vars = {}
+            setattr(agent, "extra_template_vars", template_vars)
+        template_vars["repo_map"] = artifacts.repo_map
+        template_vars["repo_map_full"] = artifacts.repo_map_full
+        template_vars["repo_map_path"] = str(artifacts.repo_map_path)
+        template_vars["repo_map_full_path"] = str(artifacts.repo_map_full_path)
+    else:
+        template_vars = getattr(agent, "extra_template_vars", None)
+        if not isinstance(template_vars, dict):
+            template_vars = {}
+            setattr(agent, "extra_template_vars", template_vars)
+        template_vars.setdefault("repo_map", "")
+        template_vars.setdefault("repo_map_full", "")
     console.print(build_status_text("Executando agente", color="green"))
     agent.run(run_task)
     if (output_path := config.get("agent", {}).get("output_path")):

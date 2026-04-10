@@ -49,6 +49,7 @@ class DefaultAgent:
             self.env.get_template_vars(),
             self.model.get_template_vars(),
             {"n_model_calls": self.n_calls, "model_cost": self.cost},
+            {"repo_map": "", "repo_map_full": "", "repo_map_path": "", "repo_map_full_path": ""},
             self.extra_template_vars,
             kwargs,
         )

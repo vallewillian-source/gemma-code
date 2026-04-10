@@ -45,6 +45,8 @@ dependencies = [
     "prompt_toolkit",
     "datasets",
     "openai != 1.100.0,!=1.100.1",  # https://github.com/vallewillian-source/gemma-code/issues/446
+    "tree-sitter >= 0.25",
+    "tree-sitter-language-pack >= 1.5",
 ]
 
 [project.optional-dependencies]

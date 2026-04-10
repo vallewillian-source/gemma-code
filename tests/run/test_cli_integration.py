@@ -138,6 +138,78 @@ def test_gemma_code_calls_prompt_when_no_task_provided():
         mock_agent.run.assert_called_once_with("User provided task")
 
 
+def test_init_short_circuits_agent_execution():
+    """Test that /init builds the RepoMap and skips model execution."""
+    with (
+        patch("gemmacode.run.mini.configure_if_first_time") as mock_configure,
+        patch("gemmacode.run.mini.build_repo_map") as mock_build_repo_map,
+        patch("gemmacode.run.mini.get_agent") as mock_get_agent,
+        patch("gemmacode.run.mini.get_model") as mock_get_model,
+        patch("gemmacode.run.mini.get_environment") as mock_get_env,
+        patch("gemmacode.run.mini.get_config_from_spec") as mock_get_config,
+    ):
+        mock_build_repo_map.return_value = Mock(
+            repo_map_path=Path(".gemmacode/repo_map.md"),
+            repo_map_full_path=Path(".gemmacode/repo_map_full.md"),
+        )
+        mock_get_config.return_value = {"agent": {"system_template": "test"}, "env": {}, "model": {}}
+
+        result = main(
+            config_spec=[str(DEFAULT_CONFIG_FILE)],
+            model_name="test-model",
+            task="/init",
+            yolo=True,
+            repo_map=True,
+            output=None,
+            model_class=None,
+            agent_class=None,
+            environment_class=None,
+        )
+
+        mock_configure.assert_not_called()
+        mock_build_repo_map.assert_called_once()
+        mock_get_model.assert_not_called()
+        mock_get_agent.assert_not_called()
+        mock_get_env.assert_not_called()
+        assert result == mock_build_repo_map.return_value
+
+
+def test_no_repo_map_flag_disables_injection():
+    """Test that disabling repo_map skips loading the RepoMap artifacts."""
+    with (
+        patch("gemmacode.run.mini.configure_if_first_time"),
+        patch("gemmacode.run.mini.load_repo_map") as mock_load_repo_map,
+        patch("gemmacode.run.mini.get_agent") as mock_get_agent,
+        patch("gemmacode.run.mini.get_model") as mock_get_model,
+        patch("gemmacode.run.mini.get_environment") as mock_get_env,
+        patch("gemmacode.run.mini.get_config_from_spec") as mock_get_config,
+    ):
+        mock_model = Mock()
+        mock_get_model.return_value = mock_model
+        mock_environment = Mock()
+        mock_get_env.return_value = mock_environment
+        mock_get_config.return_value = {"agent": {"system_template": "test"}, "env": {}, "model": {}}
+
+        mock_agent = Mock()
+        mock_agent.run.return_value = {"exit_status": "Success", "submission": "Result"}
+        mock_get_agent.return_value = mock_agent
+
+        main(
+            config_spec=[str(DEFAULT_CONFIG_FILE)],
+            model_name="test-model",
+            task="Test task",
+            yolo=True,
+            repo_map=False,
+            output=None,
+            model_class=None,
+            agent_class=None,
+            environment_class=None,
+        )
+
+        mock_load_repo_map.assert_not_called()
+        mock_agent.run.assert_called_once_with("Test task")
+
+
 def test_gemma_code_with_explicit_model():
     """Test that gemma-code works with explicitly provided model."""
     with (
@@ -317,6 +389,8 @@ def test_gemma_code_help():
     assert "--config" in clean_output
     assert "--task" in clean_output
     assert "--no-yolo" in clean_output
+    assert "--no-repo-map" in clean_output
+    assert "/init" in clean_output
     assert "--output" in clean_output
 
 
@@ -335,6 +409,8 @@ def test_gemma_code_help_with_typer_runner():
     assert "--config" in clean_output
     assert "--task" in clean_output
     assert "--no-yolo" in clean_output
+    assert "--no-repo-map" in clean_output
+    assert "/init" in clean_output
     assert "--output" in clean_output
 
 
