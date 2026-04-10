@@ -2741,21 +2741,6 @@
 <div class="highlight"><pre><span></span><code><span class="nt">agent</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">system_template</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
 <span class="w">    </span><span class="no">You are a helpful assistant that can interact with a computer.</span>
-
-<span class="w">    </span><span class="no">When you need to act, emit native tool calls, not markdown or plain text commands.</span>
-<span class="w">    </span><span class="no">The only supported tool is `bash`.</span>
-<span class="w">    </span><span class="no">Each `bash` tool call must use JSON arguments in the exact form {"command":"..."}.</span>
-<span class="w">    </span><span class="no">If you need multiple independent commands, you may emit multiple `bash` tool calls in one assistant turn.</span>
-<span class="w">    </span><span class="no">Do not wrap commands in code fences when using the tool-calling interface.</span>
-
-<span class="w">    </span><span class="no">Follow a RepoMap-first research loop before editing:</span>
-<span class="w">    </span><span class="no">1. Read the RepoMap brief.</span>
-<span class="w">    </span><span class="no">2. Build a shortlist of candidate files.</span>
-<span class="w">    </span><span class="no">3. Run `rg` on the shortlist and task-derived terms.</span>
-<span class="w">    </span><span class="no">4. Open only a few files.</span>
-<span class="w">    </span><span class="no">5. Edit only after the research threshold is satisfied.</span>
-
-<span class="w">    </span><span class="no">If the task names an explicit file, you may transition to implementation early.</span>
 <span class="w">  </span><span class="nt">instance_template</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
 <span class="w">    </span><span class="no">Please solve this issue: {{task}}</span>
 
@@ -2764,13 +2749,7 @@
 <span class="w">    </span><span class="no">{{repo_map}}</span>
 <span class="w">    </span><span class="no">{% endif %}</span>
 
-<span class="w">    </span><span class="no">{% if repo_research %}</span>
-<span class="w">    </span><span class="no">## Repo Research Brief</span>
-<span class="w">    </span><span class="no">{{repo_research}}</span>
-<span class="w">    </span><span class="no">{% endif %}</span>
-
 <span class="w">    </span><span class="no">You can execute bash commands and edit files to implement the necessary changes.</span>
-<span class="w">    </span><span class="no">When you act, use native tool calls only.</span>
 
 <span class="w">    </span><span class="no">## Recommended Workflow</span>
 
@@ -2793,13 +2772,15 @@
 <span class="w">    </span><span class="no">3. You see the result(s)</span>
 <span class="w">    </span><span class="no">4. You write your next command(s)</span>
 
-<span class="w">    </span><span class="no">Each action-oriented assistant turn must include at least one native `bash` tool call.</span>
-<span class="w">    </span><span class="no">Do not use markdown code fences as a substitute for tool calls.</span>
+<span class="w">    </span><span class="no">Each response should include:</span>
+
+<span class="w">    </span><span class="no">1. **Reasoning text** where you explain your analysis and plan</span>
+<span class="w">    </span><span class="no">2. At least one tool call with your command</span>
 
 <span class="w">    </span><span class="no">**CRITICAL REQUIREMENTS:**</span>
 
-<span class="w">    </span><span class="no">- Your response SHOULD include a brief natural-language progress note when helpful</span>
-<span class="w">    </span><span class="no">- Your response MUST include AT LEAST ONE native `bash` tool call when you are taking action</span>
+<span class="w">    </span><span class="no">- Your response SHOULD include reasoning text explaining what you're doing</span>
+<span class="w">    </span><span class="no">- Your response MUST include AT LEAST ONE bash tool call</span>
 <span class="w">    </span><span class="no">- Directory or environment variable changes are not persistent. Every action is executed in a new subshell.</span>
 <span class="w">    </span><span class="no">- However, you can prefix any action with `MY_ENV_VAR=MY_VALUE cd /path/to/working/dir &amp;&amp; ...` or write/load environment variables from files</span>
 <span class="w">    </span><span class="no">- Submit your changes and finish your work by issuing the following command: `echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT`.</span>
@@ -2807,9 +2788,9 @@
 
 <span class="w">    </span><span class="no">Example of a CORRECT response:</span>
 <span class="w">    </span><span class="no">&lt;example_response&gt;</span>
-<span class="w">    </span><span class="no">Brief progress note.</span>
+<span class="w">    </span><span class="no">I need to understand the structure of the repository first. Let me check what files are in the current directory to get a better understanding of the codebase.</span>
 
-<span class="w">    </span><span class="no">[Native bash tool call with {"command": "ls -la"} as arguments]</span>
+<span class="w">    </span><span class="no">[Makes bash tool call with {"command": "ls -la"} as arguments]</span>
 <span class="w">    </span><span class="no">&lt;/example_response&gt;</span>
 
 <span class="w">    </span><span class="no">&lt;system_information&gt;</span>
@@ -2891,18 +2872,22 @@
 <span class="w">    </span><span class="no">}</span>
 <span class="w">    </span><span class="no">{%- endif -%}</span>
 <span class="w">  </span><span class="nt">format_error_template</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<span class="w">    </span><span class="no">Tool call format error:</span>
+<span class="w">    </span><span class="no">Tool call error:</span>
 
 <span class="w">    </span><span class="no">&lt;error&gt;</span>
 <span class="w">    </span><span class="no">{{error}}</span>
 <span class="w">    </span><span class="no">&lt;/error&gt;</span>
 
-<span class="w">    </span><span class="no">To recover, send native tool calls only.</span>
-<span class="w">    </span><span class="no">- Tool name: bash</span>
-<span class="w">    </span><span class="no">- Arguments: {"command":"..."}</span>
-<span class="w">    </span><span class="no">- Do not use markdown code fences or plain text instead of a tool call</span>
-<span class="w">    </span><span class="no">- If you need multiple independent commands, emit multiple bash tool calls</span>
-<span class="w">    </span><span class="no">- If you want to finish, the final command should be: echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT</span>
+<span class="w">    </span><span class="no">Here is general guidance on how to submit correct toolcalls:</span>
+
+<span class="w">    </span><span class="no">Every response needs to use the 'bash' tool at least once to execute commands.</span>
+
+<span class="w">    </span><span class="no">Call the bash tool with your command as the argument:</span>
+<span class="w">    </span><span class="no">- Tool: bash</span>
+<span class="w">    </span><span class="no">- Arguments: {"command": "your_command_here"}</span>
+
+<span class="w">    </span><span class="no">If you want to end the task, please issue the following command: `echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT`</span>
+<span class="w">    </span><span class="no">without any other command.</span>
 <span class="w">  </span><span class="nt">model_kwargs</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">drop_params</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
 </code></pre></div>
