@@ -3075,7 +3075,8 @@
                 <span class="sa">f</span><span class="s2">"[bold green]/y[/bold green] to switch to [bold yellow]yolo[/bold yellow] mode (execute LM commands without confirmation)</span><span class="se">\n</span><span class="s2">"</span>
                 <span class="sa">f</span><span class="s2">"[bold green]/c[/bold green] to switch to [bold yellow]confirmation[/bold yellow] mode (ask for confirmation before executing LM commands)</span><span class="se">\n</span><span class="s2">"</span>
                 <span class="sa">f</span><span class="s2">"[bold green]/u[/bold green] to switch to [bold yellow]human[/bold yellow] mode (execute commands issued by the user)</span><span class="se">\n</span><span class="s2">"</span>
-                <span class="sa">f</span><span class="s2">"[bold green]/m[/bold green] to enter multiline comment"</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">"[bold green]/m[/bold green] to enter multiline comment "</span>
+                <span class="sa">f</span><span class="s2">"([bold yellow]Enter[/bold yellow] sends, [bold yellow]Shift+Enter[/bold yellow] adds a new line)"</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prompt_and_handle_slash_commands</span><span class="p">(</span><span class="n">prompt</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">user_input</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_MODE_COMMANDS_MAPPING</span><span class="p">:</span>

@@ -2738,10 +2738,23 @@
 <span class="s2">[bold green]-c mini.yaml -c model.model_kwargs.temperature=0.5[/bold green]</span>
 
 <span class="s2">[bold green]-c swebench.yaml agent.mode=yolo[/bold green]</span>
+
+<span class="s2">[bold green]-c no-yolo[/bold green] to force confirmation even though yolo is enabled by default.</span>
 <span class="s2">"""</span>
 
 <span class="n">console</span> <span class="o">=</span> <span class="n">Console</span><span class="p">(</span><span class="n">highlight</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 <span class="n">app</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Typer</span><span class="p">(</span><span class="n">rich_markup_mode</span><span class="o">=</span><span class="s2">"rich"</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_split_no_yolo_config_specs</span><span class="p">(</span><span class="n">config_spec</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">bool</span><span class="p">]:</span>
+    <span class="n">cleaned_specs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">no_yolo_requested</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">for</span> <span class="n">spec</span> <span class="ow">in</span> <span class="n">config_spec</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">spec</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"_"</span><span class="p">,</span> <span class="s2">"-"</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"no-yolo"</span><span class="p">:</span>
+            <span class="n">no_yolo_requested</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">continue</span>
+        <span class="n">cleaned_specs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">cleaned_specs</span><span class="p">,</span> <span class="n">no_yolo_requested</span>
 
 
 <span class="c1"># fmt: off</span>
@@ -2758,7 +2771,7 @@
     <span class="n">agent_class</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s2">"--agent-class"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Agent class to use (e.g., 'interactive' or 'gemmacode.agents.interactive.InteractiveAgent')"</span><span class="p">,</span> <span class="n">rich_help_panel</span><span class="o">=</span><span class="s2">"Advanced"</span><span class="p">),</span>
     <span class="n">environment_class</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s2">"--environment-class"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Environment class to use (e.g., 'local' or 'gemmacode.environments.local.LocalEnvironment')"</span><span class="p">,</span> <span class="n">rich_help_panel</span><span class="o">=</span><span class="s2">"Advanced"</span><span class="p">),</span>
     <span class="n">task</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s2">"-t"</span><span class="p">,</span> <span class="s2">"--task"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Task/problem statement"</span><span class="p">,</span> <span class="n">show_default</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
-    <span class="n">yolo</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="s2">"-y"</span><span class="p">,</span> <span class="s2">"--yolo"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Run without confirmation"</span><span class="p">),</span>
+    <span class="n">yolo</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="s2">"-y"</span><span class="p">,</span> <span class="s2">"--yolo/--no-yolo"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Run without confirmation. Enabled by default."</span><span class="p">),</span>
     <span class="n">cost_limit</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s2">"-l"</span><span class="p">,</span> <span class="s2">"--cost-limit"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Cost limit. Set to 0 to disable."</span><span class="p">),</span>
     <span class="n">config_spec</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">DEFAULT_CONFIG_FILE</span><span class="p">)],</span> <span class="s2">"-c"</span><span class="p">,</span> <span class="s2">"--config"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="n">_CONFIG_SPEC_HELP_TEXT</span><span class="p">),</span>
     <span class="n">output</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span><span class="n">DEFAULT_OUTPUT_FILE</span><span class="p">,</span> <span class="s2">"-o"</span><span class="p">,</span> <span class="s2">"--output"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Output trajectory file"</span><span class="p">),</span>
@@ -2769,6 +2782,8 @@
     <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="n">build_status_text</span><span class="p">(</span><span class="s2">"Inicializando gemma-code"</span><span class="p">,</span> <span class="s2">"pipeline local-first"</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">"cyan"</span><span class="p">))</span>
 
     <span class="c1"># Build the config from the command line arguments</span>
+    <span class="n">config_spec</span><span class="p">,</span> <span class="n">no_yolo_requested</span> <span class="o">=</span> <span class="n">_split_no_yolo_config_specs</span><span class="p">(</span><span class="n">config_spec</span><span class="p">)</span>
+    <span class="n">yolo</span> <span class="o">=</span> <span class="n">yolo</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">no_yolo_requested</span>
     <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="n">build_status_text</span><span class="p">(</span><span class="s2">"Carregando configuração"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">config_spec</span><span class="p">)</span><span class="si">}</span><span class="s2"> spec(s)"</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">"blue"</span><span class="p">))</span>
     <span class="n">configs</span> <span class="o">=</span> <span class="p">[</span><span class="n">get_config_from_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span> <span class="k">for</span> <span class="n">spec</span> <span class="ow">in</span> <span class="n">config_spec</span><span class="p">]</span>
     <span class="n">configs</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
@@ -2777,7 +2792,7 @@
         <span class="p">},</span>
         <span class="s2">"agent"</span><span class="p">:</span> <span class="p">{</span>
             <span class="s2">"agent_class"</span><span class="p">:</span> <span class="n">agent_class</span> <span class="ow">or</span> <span class="n">UNSET</span><span class="p">,</span>
-            <span class="s2">"mode"</span><span class="p">:</span> <span class="s2">"yolo"</span> <span class="k">if</span> <span class="n">yolo</span> <span class="k">else</span> <span class="n">UNSET</span><span class="p">,</span>
+            <span class="s2">"mode"</span><span class="p">:</span> <span class="s2">"yolo"</span> <span class="k">if</span> <span class="n">yolo</span> <span class="k">else</span> <span class="s2">"confirm"</span><span class="p">,</span>
             <span class="s2">"cost_limit"</span><span class="p">:</span> <span class="n">cost_limit</span> <span class="ow">or</span> <span class="n">UNSET</span><span class="p">,</span>
             <span class="s2">"confirm_exit"</span><span class="p">:</span> <span class="kc">False</span> <span class="k">if</span> <span class="n">exit_immediately</span> <span class="k">else</span> <span class="n">UNSET</span><span class="p">,</span>
             <span class="s2">"output_path"</span><span class="p">:</span> <span class="n">output</span> <span class="ow">or</span> <span class="n">UNSET</span><span class="p">,</span>
@@ -2789,7 +2804,8 @@
     <span class="n">config</span> <span class="o">=</span> <span class="n">recursive_merge</span><span class="p">(</span><span class="o">*</span><span class="n">configs</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="p">(</span><span class="n">run_task</span> <span class="o">:=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"run"</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"task"</span><span class="p">,</span> <span class="n">UNSET</span><span class="p">))</span> <span class="ow">is</span> <span class="n">UNSET</span><span class="p">:</span>
-        <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">"[bold yellow]What do you want to do?"</span><span class="p">)</span>
+        <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">"[bold yellow]What do you want to do?[/bold yellow]"</span><span class="p">)</span>
+        <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">"[dim]Enter envia. Shift+Enter quebra linha. Use --no-yolo ou -c no-yolo para pedir confirmação.[/dim]"</span><span class="p">)</span>
         <span class="n">run_task</span> <span class="o">=</span> <span class="n">_multiline_prompt</span><span class="p">()</span>
         <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">"[bold green]Got that, thanks![/bold green]"</span><span class="p">)</span>
 
@@ -2989,10 +3005,10 @@
         <span class="n"><span title="typer.Option(show_default)">show_default</span></span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">),</span>
     <span class="n">yolo</span><span class="p">:</span> <span class="n"><span title="bool">bool</span></span> <span class="o">=</span> <span class="n"><span title="typer.Option">Option</span></span><span class="p">(</span>
-        <span class="kc">False</span><span class="p">,</span>
+        <span class="kc">True</span><span class="p">,</span>
         <span class="s2">"-y"</span><span class="p">,</span>
-        <span class="s2">"--yolo"</span><span class="p">,</span>
-        <span class="n"><span title="typer.Option(help)">help</span></span><span class="o">=</span><span class="s2">"Run without confirmation"</span><span class="p">,</span>
+        <span class="s2">"--yolo/--no-yolo"</span><span class="p">,</span>
+        <span class="n"><span title="typer.Option(help)">help</span></span><span class="o">=</span><span class="s2">"Run without confirmation. Enabled by default."</span><span class="p">,</span>
     <span class="p">),</span>
     <span class="n">cost_limit</span><span class="p">:</span> <span class="n"><span title="float">float</span></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n"><span title="typer.Option">Option</span></span><span class="p">(</span>
         <span class="kc">None</span><span class="p">,</span>
@@ -3036,20 +3052,7 @@
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>src/gemmacode/run/mini.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tbody><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 58</span>
-<span class="normal"> 59</span>
-<span class="normal"> 60</span>
-<span class="normal"> 61</span>
-<span class="normal"> 62</span>
-<span class="normal"> 63</span>
-<span class="normal"> 64</span>
-<span class="normal"> 65</span>
-<span class="normal"> 66</span>
-<span class="normal"> 67</span>
-<span class="normal"> 68</span>
-<span class="normal"> 69</span>
-<span class="normal"> 70</span>
-<span class="normal"> 71</span>
+              <div class="highlight"><table class="highlighttable"><tbody><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 71</span>
 <span class="normal"> 72</span>
 <span class="normal"> 73</span>
 <span class="normal"> 74</span>
@@ -3098,7 +3101,23 @@
 <span class="normal">117</span>
 <span class="normal">118</span>
 <span class="normal">119</span>
-<span class="normal">120</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@app</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="n">help</span><span class="o">=</span><span class="n">_HELP_TEXT</span><span class="p">)</span>
+<span class="normal">120</span>
+<span class="normal">121</span>
+<span class="normal">122</span>
+<span class="normal">123</span>
+<span class="normal">124</span>
+<span class="normal">125</span>
+<span class="normal">126</span>
+<span class="normal">127</span>
+<span class="normal">128</span>
+<span class="normal">129</span>
+<span class="normal">130</span>
+<span class="normal">131</span>
+<span class="normal">132</span>
+<span class="normal">133</span>
+<span class="normal">134</span>
+<span class="normal">135</span>
+<span class="normal">136</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@app</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="n">help</span><span class="o">=</span><span class="n">_HELP_TEXT</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span>
     <span class="n">model_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s2">"-m"</span><span class="p">,</span> <span class="s2">"--model"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Model to use"</span><span class="p">,</span> <span class="n">hidden</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
     <span class="n">model_class</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span>
@@ -3111,7 +3130,7 @@
     <span class="n">agent_class</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s2">"--agent-class"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Agent class to use (e.g., 'interactive' or 'gemmacode.agents.interactive.InteractiveAgent')"</span><span class="p">,</span> <span class="n">rich_help_panel</span><span class="o">=</span><span class="s2">"Advanced"</span><span class="p">),</span>
     <span class="n">environment_class</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s2">"--environment-class"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Environment class to use (e.g., 'local' or 'gemmacode.environments.local.LocalEnvironment')"</span><span class="p">,</span> <span class="n">rich_help_panel</span><span class="o">=</span><span class="s2">"Advanced"</span><span class="p">),</span>
     <span class="n">task</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s2">"-t"</span><span class="p">,</span> <span class="s2">"--task"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Task/problem statement"</span><span class="p">,</span> <span class="n">show_default</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
-    <span class="n">yolo</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="s2">"-y"</span><span class="p">,</span> <span class="s2">"--yolo"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Run without confirmation"</span><span class="p">),</span>
+    <span class="n">yolo</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="s2">"-y"</span><span class="p">,</span> <span class="s2">"--yolo/--no-yolo"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Run without confirmation. Enabled by default."</span><span class="p">),</span>
     <span class="n">cost_limit</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s2">"-l"</span><span class="p">,</span> <span class="s2">"--cost-limit"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Cost limit. Set to 0 to disable."</span><span class="p">),</span>
     <span class="n">config_spec</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">DEFAULT_CONFIG_FILE</span><span class="p">)],</span> <span class="s2">"-c"</span><span class="p">,</span> <span class="s2">"--config"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="n">_CONFIG_SPEC_HELP_TEXT</span><span class="p">),</span>
     <span class="n">output</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span><span class="n">DEFAULT_OUTPUT_FILE</span><span class="p">,</span> <span class="s2">"-o"</span><span class="p">,</span> <span class="s2">"--output"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Output trajectory file"</span><span class="p">),</span>
@@ -3122,6 +3141,8 @@
     <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="n">build_status_text</span><span class="p">(</span><span class="s2">"Inicializando gemma-code"</span><span class="p">,</span> <span class="s2">"pipeline local-first"</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">"cyan"</span><span class="p">))</span>
 
     <span class="c1"># Build the config from the command line arguments</span>
+    <span class="n">config_spec</span><span class="p">,</span> <span class="n">no_yolo_requested</span> <span class="o">=</span> <span class="n">_split_no_yolo_config_specs</span><span class="p">(</span><span class="n">config_spec</span><span class="p">)</span>
+    <span class="n">yolo</span> <span class="o">=</span> <span class="n">yolo</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">no_yolo_requested</span>
     <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="n">build_status_text</span><span class="p">(</span><span class="s2">"Carregando configuração"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">config_spec</span><span class="p">)</span><span class="si">}</span><span class="s2"> spec(s)"</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">"blue"</span><span class="p">))</span>
     <span class="n">configs</span> <span class="o">=</span> <span class="p">[</span><span class="n">get_config_from_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span> <span class="k">for</span> <span class="n">spec</span> <span class="ow">in</span> <span class="n">config_spec</span><span class="p">]</span>
     <span class="n">configs</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
@@ -3130,7 +3151,7 @@
         <span class="p">},</span>
         <span class="s2">"agent"</span><span class="p">:</span> <span class="p">{</span>
             <span class="s2">"agent_class"</span><span class="p">:</span> <span class="n">agent_class</span> <span class="ow">or</span> <span class="n">UNSET</span><span class="p">,</span>
-            <span class="s2">"mode"</span><span class="p">:</span> <span class="s2">"yolo"</span> <span class="k">if</span> <span class="n">yolo</span> <span class="k">else</span> <span class="n">UNSET</span><span class="p">,</span>
+            <span class="s2">"mode"</span><span class="p">:</span> <span class="s2">"yolo"</span> <span class="k">if</span> <span class="n">yolo</span> <span class="k">else</span> <span class="s2">"confirm"</span><span class="p">,</span>
             <span class="s2">"cost_limit"</span><span class="p">:</span> <span class="n">cost_limit</span> <span class="ow">or</span> <span class="n">UNSET</span><span class="p">,</span>
             <span class="s2">"confirm_exit"</span><span class="p">:</span> <span class="kc">False</span> <span class="k">if</span> <span class="n">exit_immediately</span> <span class="k">else</span> <span class="n">UNSET</span><span class="p">,</span>
             <span class="s2">"output_path"</span><span class="p">:</span> <span class="n">output</span> <span class="ow">or</span> <span class="n">UNSET</span><span class="p">,</span>
@@ -3142,7 +3163,8 @@
     <span class="n">config</span> <span class="o">=</span> <span class="n">recursive_merge</span><span class="p">(</span><span class="o">*</span><span class="n">configs</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="p">(</span><span class="n">run_task</span> <span class="o">:=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"run"</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"task"</span><span class="p">,</span> <span class="n">UNSET</span><span class="p">))</span> <span class="ow">is</span> <span class="n">UNSET</span><span class="p">:</span>
-        <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">"[bold yellow]What do you want to do?"</span><span class="p">)</span>
+        <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">"[bold yellow]What do you want to do?[/bold yellow]"</span><span class="p">)</span>
+        <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">"[dim]Enter envia. Shift+Enter quebra linha. Use --no-yolo ou -c no-yolo para pedir confirmação.[/dim]"</span><span class="p">)</span>
         <span class="n">run_task</span> <span class="o">=</span> <span class="n">_multiline_prompt</span><span class="p">()</span>
         <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">"[bold green]Got that, thanks![/bold green]"</span><span class="p">)</span>
 
