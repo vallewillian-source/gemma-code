@@ -5,11 +5,11 @@ from unittest.mock import Mock, patch
 import pytest
 import requests
 
-from minisweagent.models import GLOBAL_MODEL_STATS
-from minisweagent.models.openrouter_model import (
+from gemmacode.models import GLOBAL_MODEL_STATS
+from gemmacode.models.openrouter_model import (
     OpenRouterAuthenticationError,
 )
-from minisweagent.models.openrouter_textbased_model import (
+from gemmacode.models.openrouter_textbased_model import (
     OpenRouterTextbasedModel,
 )
 

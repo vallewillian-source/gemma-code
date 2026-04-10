@@ -6,7 +6,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from minisweagent.run.mini import DEFAULT_CONFIG_FILE, app, main
+from gemmacode.run.mini import DEFAULT_CONFIG_FILE, app, main
 
 
 def strip_ansi_codes(text: str) -> str:
@@ -18,11 +18,11 @@ def strip_ansi_codes(text: str) -> str:
 def test_configure_if_first_time_called():
     """Test that configure_if_first_time is called when running gemma-code main."""
     with (
-        patch("minisweagent.run.mini.configure_if_first_time") as mock_configure,
-        patch("minisweagent.run.mini.get_agent") as mock_get_agent,
-        patch("minisweagent.run.mini.get_model") as mock_get_model,
-        patch("minisweagent.run.mini.get_environment") as mock_get_env,
-        patch("minisweagent.run.mini.get_config_from_spec") as mock_get_config,
+        patch("gemmacode.run.mini.configure_if_first_time") as mock_configure,
+        patch("gemmacode.run.mini.get_agent") as mock_get_agent,
+        patch("gemmacode.run.mini.get_model") as mock_get_model,
+        patch("gemmacode.run.mini.get_environment") as mock_get_env,
+        patch("gemmacode.run.mini.get_config_from_spec") as mock_get_config,
     ):
         # Setup mocks
         mock_model = Mock()
@@ -55,11 +55,11 @@ def test_configure_if_first_time_called():
 def test_gemma_code_command_calls_run_interactive():
     """Test that gemma-code command creates agent via get_agent."""
     with (
-        patch("minisweagent.run.mini.configure_if_first_time"),
-        patch("minisweagent.run.mini.get_agent") as mock_get_agent,
-        patch("minisweagent.run.mini.get_model") as mock_get_model,
-        patch("minisweagent.run.mini.get_environment") as mock_get_env,
-        patch("minisweagent.run.mini.get_config_from_spec") as mock_get_config,
+        patch("gemmacode.run.mini.configure_if_first_time"),
+        patch("gemmacode.run.mini.get_agent") as mock_get_agent,
+        patch("gemmacode.run.mini.get_model") as mock_get_model,
+        patch("gemmacode.run.mini.get_environment") as mock_get_env,
+        patch("gemmacode.run.mini.get_config_from_spec") as mock_get_config,
     ):
         # Setup mocks
         mock_model = Mock()
@@ -97,12 +97,12 @@ def test_gemma_code_command_calls_run_interactive():
 def test_gemma_code_calls_prompt_when_no_task_provided():
     """Test that gemma-code calls prompt when no task is provided."""
     with (
-        patch("minisweagent.run.mini.configure_if_first_time"),
-        patch("minisweagent.run.mini._multiline_prompt") as mock_prompt,
-        patch("minisweagent.run.mini.get_agent") as mock_get_agent,
-        patch("minisweagent.run.mini.get_model") as mock_get_model,
-        patch("minisweagent.run.mini.get_environment") as mock_get_env,
-        patch("minisweagent.run.mini.get_config_from_spec") as mock_get_config,
+        patch("gemmacode.run.mini.configure_if_first_time"),
+        patch("gemmacode.run.mini._multiline_prompt") as mock_prompt,
+        patch("gemmacode.run.mini.get_agent") as mock_get_agent,
+        patch("gemmacode.run.mini.get_model") as mock_get_model,
+        patch("gemmacode.run.mini.get_environment") as mock_get_env,
+        patch("gemmacode.run.mini.get_config_from_spec") as mock_get_config,
     ):
         # Setup mocks
         mock_prompt.return_value = "User provided task"
@@ -141,11 +141,11 @@ def test_gemma_code_calls_prompt_when_no_task_provided():
 def test_gemma_code_with_explicit_model():
     """Test that gemma-code works with explicitly provided model."""
     with (
-        patch("minisweagent.run.mini.configure_if_first_time"),
-        patch("minisweagent.run.mini.get_agent") as mock_get_agent,
-        patch("minisweagent.run.mini.get_model") as mock_get_model,
-        patch("minisweagent.run.mini.get_environment") as mock_get_env,
-        patch("minisweagent.run.mini.get_config_from_spec") as mock_get_config,
+        patch("gemmacode.run.mini.configure_if_first_time"),
+        patch("gemmacode.run.mini.get_agent") as mock_get_agent,
+        patch("gemmacode.run.mini.get_model") as mock_get_model,
+        patch("gemmacode.run.mini.get_environment") as mock_get_env,
+        patch("gemmacode.run.mini.get_config_from_spec") as mock_get_config,
     ):
         # Setup mocks
         mock_model = Mock()
@@ -187,11 +187,11 @@ def test_gemma_code_with_explicit_model():
 def test_yolo_mode_sets_correct_agent_config():
     """Test that yolo mode sets the correct gemma-code configuration."""
     with (
-        patch("minisweagent.run.mini.configure_if_first_time"),
-        patch("minisweagent.run.mini.get_agent") as mock_get_agent,
-        patch("minisweagent.run.mini.get_model") as mock_get_model,
-        patch("minisweagent.run.mini.get_environment") as mock_get_env,
-        patch("minisweagent.run.mini.get_config_from_spec") as mock_get_config,
+        patch("gemmacode.run.mini.configure_if_first_time"),
+        patch("gemmacode.run.mini.get_agent") as mock_get_agent,
+        patch("gemmacode.run.mini.get_model") as mock_get_model,
+        patch("gemmacode.run.mini.get_environment") as mock_get_env,
+        patch("gemmacode.run.mini.get_config_from_spec") as mock_get_config,
     ):
         # Setup mocks
         mock_model = Mock()
@@ -229,11 +229,11 @@ def test_yolo_mode_sets_correct_agent_config():
 def test_confirm_mode_sets_correct_agent_config():
     """Test that when yolo=False, no explicit mode is set for gemma-code."""
     with (
-        patch("minisweagent.run.mini.configure_if_first_time"),
-        patch("minisweagent.run.mini.get_agent") as mock_get_agent,
-        patch("minisweagent.run.mini.get_model") as mock_get_model,
-        patch("minisweagent.run.mini.get_environment") as mock_get_env,
-        patch("minisweagent.run.mini.get_config_from_spec") as mock_get_config,
+        patch("gemmacode.run.mini.configure_if_first_time"),
+        patch("gemmacode.run.mini.get_agent") as mock_get_agent,
+        patch("gemmacode.run.mini.get_model") as mock_get_model,
+        patch("gemmacode.run.mini.get_environment") as mock_get_env,
+        patch("gemmacode.run.mini.get_config_from_spec") as mock_get_config,
     ):
         # Setup mocks
         mock_model = Mock()
@@ -271,7 +271,7 @@ def test_confirm_mode_sets_correct_agent_config():
 def test_gemma_code_help():
     """Test that gemma-code --help works correctly."""
     result = subprocess.run(
-        [sys.executable, "-m", "minisweagent", "--help"],
+        [sys.executable, "-m", "gemmacode", "--help"],
         capture_output=True,
         text=True,
         timeout=10,
@@ -283,7 +283,6 @@ def test_gemma_code_help():
     assert "Run gemma-code in your local environment." in clean_output
     assert "--help" in clean_output
     assert "--config" in clean_output
-    assert "--model" in clean_output
     assert "--task" in clean_output
     assert "--yolo" in clean_output
     assert "--output" in clean_output
@@ -302,16 +301,15 @@ def test_gemma_code_help_with_typer_runner():
     assert "Run gemma-code in your local environment." in clean_output
     assert "--help" in clean_output
     assert "--config" in clean_output
-    assert "--model" in clean_output
     assert "--task" in clean_output
     assert "--yolo" in clean_output
     assert "--output" in clean_output
 
 
-def test_python_m_minisweagent_help():
-    """Test that python -m minisweagent --help works correctly."""
+def test_python_m_gemmacode_help():
+    """Test that python -m gemmacode --help works correctly."""
     result = subprocess.run(
-        [sys.executable, "-m", "minisweagent", "--help"],
+        [sys.executable, "-m", "gemmacode", "--help"],
         capture_output=True,
         text=True,
         timeout=10,
@@ -422,11 +420,11 @@ def test_gemma_code_extra_config_help():
 def test_exit_immediately_flag_sets_confirm_exit_false():
     """Test that --exit-immediately flag sets confirm_exit to False in agent config."""
     with (
-        patch("minisweagent.run.mini.configure_if_first_time"),
-        patch("minisweagent.run.mini.get_agent") as mock_get_agent,
-        patch("minisweagent.run.mini.get_model") as mock_get_model,
-        patch("minisweagent.run.mini.get_environment") as mock_get_env,
-        patch("minisweagent.run.mini.get_config_from_spec") as mock_get_config,
+        patch("gemmacode.run.mini.configure_if_first_time"),
+        patch("gemmacode.run.mini.get_agent") as mock_get_agent,
+        patch("gemmacode.run.mini.get_model") as mock_get_model,
+        patch("gemmacode.run.mini.get_environment") as mock_get_env,
+        patch("gemmacode.run.mini.get_config_from_spec") as mock_get_config,
     ):
         # Setup mocks
         mock_model = Mock()
@@ -461,11 +459,11 @@ def test_exit_immediately_flag_sets_confirm_exit_false():
 def test_no_exit_immediately_flag_sets_confirm_exit_true():
     """Test that when --exit-immediately flag is not used, confirm_exit defaults to True."""
     with (
-        patch("minisweagent.run.mini.configure_if_first_time"),
-        patch("minisweagent.run.mini.get_agent") as mock_get_agent,
-        patch("minisweagent.run.mini.get_model") as mock_get_model,
-        patch("minisweagent.run.mini.get_environment") as mock_get_env,
-        patch("minisweagent.run.mini.get_config_from_spec") as mock_get_config,
+        patch("gemmacode.run.mini.configure_if_first_time"),
+        patch("gemmacode.run.mini.get_agent") as mock_get_agent,
+        patch("gemmacode.run.mini.get_model") as mock_get_model,
+        patch("gemmacode.run.mini.get_environment") as mock_get_env,
+        patch("gemmacode.run.mini.get_config_from_spec") as mock_get_config,
     ):
         # Setup mocks
         mock_model = Mock()
@@ -501,11 +499,11 @@ def test_exit_immediately_flag_with_typer_runner():
     from typer.testing import CliRunner
 
     with (
-        patch("minisweagent.run.mini.configure_if_first_time"),
-        patch("minisweagent.run.mini.get_agent") as mock_get_agent,
-        patch("minisweagent.run.mini.get_model") as mock_get_model,
-        patch("minisweagent.run.mini.get_environment") as mock_get_env,
-        patch("minisweagent.run.mini.get_config_from_spec") as mock_get_config,
+        patch("gemmacode.run.mini.configure_if_first_time"),
+        patch("gemmacode.run.mini.get_agent") as mock_get_agent,
+        patch("gemmacode.run.mini.get_model") as mock_get_model,
+        patch("gemmacode.run.mini.get_environment") as mock_get_env,
+        patch("gemmacode.run.mini.get_config_from_spec") as mock_get_config,
     ):
         # Setup mocks
         mock_model = Mock()
@@ -538,15 +536,15 @@ def test_output_file_is_created(tmp_path):
 
     # Create a temporary config file
     config_file = tmp_path / "test_config.yaml"
-    default_config_path = Path("src/minisweagent/config/default.yaml")
+    default_config_path = Path("src/gemmacode/config/default.yaml")
     config_file.write_text(default_config_path.read_text())
 
     with (
-        patch("minisweagent.run.mini.configure_if_first_time"),
-        patch("minisweagent.run.mini.get_model") as mock_get_model,
-        patch("minisweagent.run.mini.get_environment") as mock_get_env,
-        patch("minisweagent.agents.utils.prompt_user.prompt_session.prompt", return_value=""),
-        patch("minisweagent.agents.utils.prompt_user._multiline_prompt_session.prompt", return_value=""),
+        patch("gemmacode.run.mini.configure_if_first_time"),
+        patch("gemmacode.run.mini.get_model") as mock_get_model,
+        patch("gemmacode.run.mini.get_environment") as mock_get_env,
+        patch("gemmacode.agents.utils.prompt_user.prompt_session.prompt", return_value=""),
+        patch("gemmacode.agents.utils.prompt_user._multiline_prompt_session.prompt", return_value=""),
     ):
         # Setup mocks
         mock_model = Mock()
@@ -572,7 +570,7 @@ def test_output_file_is_created(tmp_path):
         mock_get_model.return_value = mock_model
 
         # Environment execute raises Submitted when COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT is seen
-        from minisweagent.exceptions import Submitted
+        from gemmacode.exceptions import Submitted
 
         def execute_side_effect(action):
             raise Submitted(

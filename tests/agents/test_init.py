@@ -1,18 +1,18 @@
 import pytest
 
-from minisweagent.agents import get_agent, get_agent_class
-from minisweagent.agents.default import DefaultAgent
-from minisweagent.agents.interactive import InteractiveAgent
-from minisweagent.environments.local import LocalEnvironment
-from minisweagent.models.test_models import DeterministicModel
+from gemmacode.agents import get_agent, get_agent_class
+from gemmacode.agents.default import DefaultAgent
+from gemmacode.agents.interactive import InteractiveAgent
+from gemmacode.environments.local import LocalEnvironment
+from gemmacode.models.test_models import DeterministicModel
 
 
 class TestGetAgentClass:
     @pytest.mark.parametrize(
         ("spec", "expected"),
         [
-            ("minisweagent.agents.default.DefaultAgent", DefaultAgent),
-            ("minisweagent.agents.interactive.InteractiveAgent", InteractiveAgent),
+            ("gemmacode.agents.default.DefaultAgent", DefaultAgent),
+            ("gemmacode.agents.interactive.InteractiveAgent", InteractiveAgent),
         ],
     )
     def test_full_path(self, spec, expected):

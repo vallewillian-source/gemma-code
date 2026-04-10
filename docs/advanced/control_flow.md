@@ -49,11 +49,11 @@ And here is the code that implements it:
 
 ??? note "Default agent class"
 
-    - [Read on GitHub](https://github.com/swe-agent/gemma-code/blob/main/src/minisweagent/agents/default.py)
+    - [Read on GitHub](https://github.com/swe-agent/gemma-code/blob/main/src/gemmacode/agents/default.py)
     - [API reference](../reference/agents/default.md)
 
     ```python
-    --8<-- "src/minisweagent/agents/default.py"
+    --8<-- "src/gemmacode/agents/default.py"
     ```
 
 Essentially, `DefaultAgent.run` calls `DefaultAgent.step` in a loop until the agent has finished its task.

@@ -1,10 +1,9 @@
 import os
 from unittest.mock import patch
 
-import pytest
-
-from minisweagent.models import GlobalModelStats, get_model, get_model_class, get_model_name
-from minisweagent.models.test_models import DeterministicModel, make_output
+from gemmacode.models import GlobalModelStats, get_model, get_model_class, get_model_name
+from gemmacode.models.test_models import DeterministicModel, make_output
+from gemmacode.runtime import DEFAULT_LOCAL_MODEL_NAME
 
 
 class TestGetModelName:
@@ -23,7 +22,7 @@ class TestGetModelName:
 
     def test_env_var_fallback(self):
         """Test that environment variable is used when no config provided."""
-        with patch.dict(os.environ, {"MSWEA_MODEL_NAME": "env-model"}):
+        with patch.dict(os.environ, {"GEMMACODE_LOCAL_MODEL_NAME": "env-model"}, clear=True):
             assert get_model_name(None, {}) == "env-model"
 
     def test_config_fallback(self):
@@ -31,38 +30,31 @@ class TestGetModelName:
         with patch.dict(os.environ, {}, clear=True):
             assert get_model_name(None, self.CONFIG_WITH_MODEL_NAME) == "config-model"
 
-    def test_raises_error_when_no_model_configured(self):
-        """Test that ValueError is raised when no model is configured anywhere."""
+    def test_falls_back_to_automatic_model_when_none_configured(self):
+        """Test that the automatic local model is used when nothing is configured."""
         with patch.dict(os.environ, {}, clear=True):
-            with pytest.raises(
-                ValueError, match="No default model set. Please run `mini-extra config setup` to set one."
-            ):
-                get_model_name(None, {})
-
-            with pytest.raises(
-                ValueError, match="No default model set. Please run `mini-extra config setup` to set one."
-            ):
-                get_model_name(None, None)
+            assert get_model_name(None, {}) == DEFAULT_LOCAL_MODEL_NAME
+            assert get_model_name(None, None) == DEFAULT_LOCAL_MODEL_NAME
 
 
 class TestGetModelClass:
     def test_anthropic_model_selection(self):
         """Test that anthropic-related model names return LitellmModel by default."""
-        from minisweagent.models.litellm_model import LitellmModel
+        from gemmacode.models.litellm_model import LitellmModel
 
         for name in ["anthropic", "sonnet", "opus", "claude-sonnet", "claude-opus"]:
             assert get_model_class(name) == LitellmModel
 
     def test_litellm_model_fallback(self):
         """Test that non-anthropic model names return LitellmModel."""
-        from minisweagent.models.litellm_model import LitellmModel
+        from gemmacode.models.litellm_model import LitellmModel
 
         for name in ["gpt-4", "gpt-3.5-turbo", "llama2", "random-model"]:
             assert get_model_class(name) == LitellmModel
 
     def test_partial_matches(self):
         """Test that partial string matches work correctly."""
-        from minisweagent.models.litellm_model import LitellmModel
+        from gemmacode.models.litellm_model import LitellmModel
 
         assert get_model_class("my-anthropic-model") == LitellmModel
         assert get_model_class("sonnet-latest") == LitellmModel
@@ -72,7 +64,7 @@ class TestGetModelClass:
 
     def test_litellm_response_model_selection(self):
         """Test that litellm_response model class can be selected."""
-        from minisweagent.models.litellm_response_model import LitellmResponseModel
+        from gemmacode.models.litellm_response_model import LitellmResponseModel
 
         assert get_model_class("any-model", "litellm_response") == LitellmResponseModel
 
@@ -82,7 +74,7 @@ class TestGetModel:
         """Test that get_model preserves original config via deep copy."""
         original_config = {"model_kwargs": {"api_key": "original"}, "outputs": [make_output("test", [])]}
 
-        with patch("minisweagent.models.get_model_class") as mock_get_class:
+        with patch("gemmacode.models.get_model_class") as mock_get_class:
             mock_get_class.return_value = lambda **kwargs: DeterministicModel(
                 outputs=[make_output("test", [])], model_name="test"
             )
@@ -92,7 +84,7 @@ class TestGetModel:
 
     def test_integration_with_compatible_model(self):
         """Test get_model works end-to-end with a model that handles extra kwargs."""
-        with patch("minisweagent.models.get_model_class") as mock_get_class:
+        with patch("gemmacode.models.get_model_class") as mock_get_class:
             hello_output = make_output("hello", [])
 
             def compatible_model(**kwargs):

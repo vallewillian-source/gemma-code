@@ -2,30 +2,30 @@
 
 !!! note "DefaultAgent class"
 
-    - [Read on GitHub](https://github.com/swe-agent/gemma-code/blob/main/src/minisweagent/agents/default.py)
+    - [Read on GitHub](https://github.com/swe-agent/gemma-code/blob/main/src/gemmacode/agents/default.py)
 
     ??? note "Full source code"
 
         ```python
-        --8<-- "src/minisweagent/agents/default.py"
+        --8<-- "src/gemmacode/agents/default.py"
         ```
 
 !!! tip "Understanding the control flow"
 
     Check out the [control flow guide](../../advanced/control_flow.md) for a visual explanation of the agent's control flow.
 
-::: minisweagent.agents.default.AgentConfig
+::: gemmacode.agents.default.AgentConfig
 
-::: minisweagent.agents.default.DefaultAgent
+::: gemmacode.agents.default.DefaultAgent
 
-::: minisweagent.exceptions.InterruptAgentFlow
+::: gemmacode.exceptions.InterruptAgentFlow
 
-::: minisweagent.exceptions.Submitted
+::: gemmacode.exceptions.Submitted
 
-::: minisweagent.exceptions.LimitsExceeded
+::: gemmacode.exceptions.LimitsExceeded
 
-::: minisweagent.exceptions.FormatError
+::: gemmacode.exceptions.FormatError
 
-::: minisweagent.exceptions.UserInterruption
+::: gemmacode.exceptions.UserInterruption
 
 {% include-markdown "../../_footer.md" %}

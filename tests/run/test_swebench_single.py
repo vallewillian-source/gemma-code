@@ -3,9 +3,9 @@ from unittest.mock import patch
 
 import pytest
 
-from minisweagent import package_dir
-from minisweagent.models.test_models import DeterministicModel, make_output
-from minisweagent.run.benchmarks.swebench_single import main
+from gemmacode import package_dir
+from gemmacode.models.test_models import DeterministicModel, make_output
+from gemmacode.run.benchmarks.swebench_single import main
 
 
 def _make_model_from_fixture(text_outputs: list[str], cost_per_call: float = 1.0, **kwargs) -> DeterministicModel:
@@ -31,10 +31,10 @@ def test_swebench_single_end_to_end(github_test_data, tmp_path, container_execut
     model_responses = github_test_data["model_responses"]
 
     with (
-        patch("minisweagent.run.benchmarks.swebench_single.get_model") as mock_get_model,
-        patch("minisweagent.agents.utils.prompt_user.prompt_session.prompt", side_effect=lambda *a, **kw: ""),
+        patch("gemmacode.run.benchmarks.swebench_single.get_model") as mock_get_model,
+        patch("gemmacode.agents.utils.prompt_user.prompt_session.prompt", side_effect=lambda *a, **kw: ""),
         patch(
-            "minisweagent.agents.utils.prompt_user._multiline_prompt_session.prompt", side_effect=lambda *a, **kw: ""
+            "gemmacode.agents.utils.prompt_user._multiline_prompt_session.prompt", side_effect=lambda *a, **kw: ""
         ),
         patch("builtins.input", return_value=""),  # For LimitsExceeded handling
     ):
@@ -72,10 +72,10 @@ def test_swebench_single_end_to_end_exit_immediately(github_test_data, tmp_path,
     model_responses = github_test_data["model_responses"]
 
     with (
-        patch("minisweagent.run.benchmarks.swebench_single.get_model") as mock_get_model,
-        patch("minisweagent.agents.utils.prompt_user.prompt_session.prompt", side_effect=lambda *a, **kw: ""),
+        patch("gemmacode.run.benchmarks.swebench_single.get_model") as mock_get_model,
+        patch("gemmacode.agents.utils.prompt_user.prompt_session.prompt", side_effect=lambda *a, **kw: ""),
         patch(
-            "minisweagent.agents.utils.prompt_user._multiline_prompt_session.prompt", side_effect=lambda *a, **kw: ""
+            "gemmacode.agents.utils.prompt_user._multiline_prompt_session.prompt", side_effect=lambda *a, **kw: ""
         ),
         patch("builtins.input", return_value=""),  # For LimitsExceeded handling
     ):

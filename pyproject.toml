@@ -87,22 +87,22 @@ Repository = "https://github.com/vallewillian-source/gemma-code"
 "Bug Tracker" = "https://github.com/vallewillian-source/gemma-code/issues"
 
 [project.scripts]
-gemma-code = "minisweagent.run.mini:app"
-gemma-code-extra = "minisweagent.run.utilities.mini_extra:main"
-gemma-code-e = "minisweagent.run.utilities.mini_extra:main"
+gemma-code = "gemmacode.run.mini:app"
+gemma-code-extra = "gemmacode.run.utilities.mini_extra:main"
+gemma-code-e = "gemmacode.run.utilities.mini_extra:main"
 
 [tool.setuptools]
 include-package-data = true
 
 [tool.setuptools.dynamic]
-version = {attr = "minisweagent.__version__"}
+version = {attr = "gemmacode.__version__"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
-include = ["minisweagent*"]
+include = ["gemmacode*"]
 
 [tool.setuptools.package-data]
-minisweagent = ["config/**/*"]
+gemmacode = ["config/**/*"]
 
 [tool.ruff]
 # Exclude a variety of commonly ignored directories.

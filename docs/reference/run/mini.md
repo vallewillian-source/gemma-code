@@ -2,14 +2,14 @@
 
 !!! note "Mini run script"
 
-    - [Read on GitHub](https://github.com/swe-agent/gemma-code/blob/main/src/minisweagent/run/mini.py)
+    - [Read on GitHub](https://github.com/swe-agent/gemma-code/blob/main/src/gemmacode/run/mini.py)
 
     ??? note "Full source code"
 
         ```python
-        --8<-- "src/minisweagent/run/mini.py"
+        --8<-- "src/gemmacode/run/mini.py"
         ```
 
-::: minisweagent.run.mini
+::: gemmacode.run.mini
 
 {% include-markdown "../../_footer.md" %}

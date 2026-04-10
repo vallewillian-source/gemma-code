@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 import pytest
 
-from minisweagent.environments.local import LocalEnvironment, LocalEnvironmentConfig
+from gemmacode.environments.local import LocalEnvironment, LocalEnvironmentConfig
 
 
 def test_local_environment_config_defaults():

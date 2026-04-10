@@ -3,9 +3,9 @@ from pathlib import Path
 import pytest
 import yaml
 
-from minisweagent.agents.default import DefaultAgent
-from minisweagent.environments.local import LocalEnvironment
-from minisweagent.models.test_models import (
+from gemmacode.agents.default import DefaultAgent
+from gemmacode.environments.local import LocalEnvironment
+from gemmacode.models.test_models import (
     DeterministicModel,
     DeterministicResponseAPIToolcallModel,
     DeterministicToolcallModel,
@@ -58,7 +58,7 @@ def is_observation_message(msg: dict) -> bool:
 @pytest.fixture
 def default_config():
     """Load default agent config from config/default.yaml"""
-    config_path = Path("src/minisweagent/config/default.yaml")
+    config_path = Path("src/gemmacode/config/default.yaml")
     with open(config_path) as f:
         config = yaml.safe_load(f)
     return config["agent"]
@@ -67,7 +67,7 @@ def default_config():
 @pytest.fixture
 def toolcall_config():
     """Load toolcall agent config from config/mini.yaml"""
-    config_path = Path("src/minisweagent/config/mini.yaml")
+    config_path = Path("src/gemmacode/config/mini.yaml")
     with open(config_path) as f:
         config = yaml.safe_load(f)
     return config["agent"]

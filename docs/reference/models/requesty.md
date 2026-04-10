@@ -2,14 +2,14 @@
 
 !!! note "Requesty Model class"
 
-    - [Read on GitHub](https://github.com/swe-agent/gemma-code/blob/main/src/minisweagent/models/requesty_model.py)
+    - [Read on GitHub](https://github.com/swe-agent/gemma-code/blob/main/src/gemmacode/models/requesty_model.py)
 
     ??? note "Full source code"
 
         ```python
-        --8<-- "src/minisweagent/models/requesty_model.py"
+        --8<-- "src/gemmacode/models/requesty_model.py"
         ```
 
-::: minisweagent.models.requesty_model
+::: gemmacode.models.requesty_model
 
 {% include-markdown "../../_footer.md" %}

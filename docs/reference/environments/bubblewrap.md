@@ -1,5 +1,5 @@
 # Bubblewrap
 
-::: minisweagent.environments.extra.bubblewrap
+::: gemmacode.environments.extra.bubblewrap
 
 {% include-markdown "../../_footer.md" %}

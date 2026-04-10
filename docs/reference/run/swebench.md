@@ -2,8 +2,8 @@
 
 !!! note "SWE-bench run script"
 
-    - [Read on GitHub](https://github.com/swe-agent/gemma-code/blob/main/src/minisweagent/run/benchmarks/swebench.py)
+    - [Read on GitHub](https://github.com/swe-agent/gemma-code/blob/main/src/gemmacode/run/benchmarks/swebench.py)
 
-::: minisweagent.run.benchmarks.swebench
+::: gemmacode.run.benchmarks.swebench
 
 {% include-markdown "../../_footer.md" %}

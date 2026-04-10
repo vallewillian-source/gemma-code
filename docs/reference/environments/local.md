@@ -2,14 +2,14 @@
 
 !!! note "Local Environment class"
 
-    - [Read on GitHub](https://github.com/swe-agent/gemma-code/blob/main/src/minisweagent/environments/local.py)
+    - [Read on GitHub](https://github.com/swe-agent/gemma-code/blob/main/src/gemmacode/environments/local.py)
 
     ??? note "Full source code"
 
         ```python
-        --8<-- "src/minisweagent/environments/local.py"
+        --8<-- "src/gemmacode/environments/local.py"
         ```
 
-::: minisweagent.environments.local
+::: gemmacode.environments.local
 
 {% include-markdown "../../_footer.md" %}

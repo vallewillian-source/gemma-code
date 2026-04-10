@@ -2,16 +2,16 @@
 
 !!! note "ConTree Environment class"
 
-    - [Read on GitHub](https://github.com/swe-agent/gemma-code/blob/main/src/minisweagent/environments/extra/contree.py)
+    - [Read on GitHub](https://github.com/swe-agent/gemma-code/blob/main/src/gemmacode/environments/extra/contree.py)
     - Requires [ConTree](https://contree.dev) token
 
     ??? note "Full source code"
 
         ```python
-        --8<-- "src/minisweagent/environments/extra/contree.py"
+        --8<-- "src/gemmacode/environments/extra/contree.py"
         ```
 
-::: minisweagent.environments.extra.contree
+::: gemmacode.environments.extra.contree
 
 This environment executes commands in [ConTree](https://contree.dev) sandboxes using [ConTree SDK](https://github.com/nebius/contree-sdk)
 

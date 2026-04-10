@@ -1,8 +1,8 @@
-"""Tests for minisweagent.config.__init__."""
+"""Tests for gemmacode.config.__init__."""
 
 import pytest
 
-from minisweagent.config import (
+from gemmacode.config import (
     _key_value_spec_to_nested_dict,
     builtin_config_dir,
     get_config_from_spec,

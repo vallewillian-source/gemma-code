@@ -5,9 +5,9 @@ from unittest.mock import patch
 import pytest
 import yaml
 
-from minisweagent.agents.interactive import InteractiveAgent
-from minisweagent.environments.local import LocalEnvironment
-from minisweagent.models.test_models import (
+from gemmacode.agents.interactive import InteractiveAgent
+from gemmacode.environments.local import LocalEnvironment
+from gemmacode.models.test_models import (
     DeterministicModel,
     DeterministicResponseAPIToolcallModel,
     DeterministicToolcallModel,
@@ -28,8 +28,8 @@ def mock_prompts(side_effect):
         def se(*args, **kwargs):
             return next(it)
 
-    with patch("minisweagent.agents.utils.prompt_user.prompt_session.prompt", side_effect=se):
-        with patch("minisweagent.agents.utils.prompt_user._multiline_prompt_session.prompt", side_effect=se):
+    with patch("gemmacode.agents.utils.prompt_user.prompt_session.prompt", side_effect=se):
+        with patch("gemmacode.agents.utils.prompt_user._multiline_prompt_session.prompt", side_effect=se):
             yield
 
 
@@ -104,7 +104,7 @@ def _make_model(outputs: list[tuple[str, list[dict]]], **kwargs) -> Deterministi
 @pytest.fixture
 def default_config():
     """Load default agent config from config/default.yaml"""
-    config_path = Path("src/minisweagent/config/default.yaml")
+    config_path = Path("src/gemmacode/config/default.yaml")
     with open(config_path) as f:
         config = yaml.safe_load(f)
     return config["agent"]
@@ -113,7 +113,7 @@ def default_config():
 @pytest.fixture
 def toolcall_config():
     """Load toolcall agent config from config/mini.yaml"""
-    config_path = Path("src/minisweagent/config/mini.yaml")
+    config_path = Path("src/gemmacode/config/mini.yaml")
     with open(config_path) as f:
         config = yaml.safe_load(f)
     return config["agent"]
@@ -216,7 +216,7 @@ def test_help_command(model_factory):
             "",  # No new task when agent wants to finish
         ]
     ):
-        with patch("minisweagent.agents.interactive.console.print") as mock_print:
+        with patch("gemmacode.agents.interactive.console.print") as mock_print:
             agent = InteractiveAgent(
                 model=factory(
                     [
@@ -707,7 +707,7 @@ def test_help_command_from_different_contexts(model_factory):
             "",  # No new task when agent wants to finish
         ]
     ):
-        with patch("minisweagent.agents.interactive.console.print") as mock_print:
+        with patch("gemmacode.agents.interactive.console.print") as mock_print:
             agent = InteractiveAgent(
                 model=factory(
                     [
@@ -742,7 +742,7 @@ def test_help_command_from_human_mode(model_factory):
             "",  # No new task when agent wants to finish
         ]
     ):
-        with patch("minisweagent.agents.interactive.console.print") as mock_print:
+        with patch("gemmacode.agents.interactive.console.print") as mock_print:
             agent = InteractiveAgent(
                 model=factory([]),  # LM shouldn't be called
                 env=LocalEnvironment(),
@@ -840,7 +840,7 @@ def test_limits_exceeded_with_user_continuation(model_factory):
     # Mock input() to provide new limits when prompted
     with patch("builtins.input", side_effect=["10", "5.0"]):  # New step_limit=10, cost_limit=5.0
         with mock_prompts([""]):  # No new task
-            with patch("minisweagent.agents.interactive.console.print"):  # Suppress console output
+            with patch("gemmacode.agents.interactive.console.print"):  # Suppress console output
                 info = agent.run("Test limits exceeded with continuation")
 
     assert info["exit_status"] == "Submitted"
@@ -884,7 +884,7 @@ def test_limits_exceeded_multiple_times_with_continuation(model_factory):
     # First limit increase: step_limit=2, then step_limit=10 when exceeded again
     with patch("builtins.input", side_effect=["2", "100.0", "10", "100.0"]):
         with mock_prompts([""]):  # No new task
-            with patch("minisweagent.agents.interactive.console.print"):
+            with patch("gemmacode.agents.interactive.console.print"):
                 info = agent.run("Test multiple limit increases")
 
     assert info["exit_status"] == "Submitted"
@@ -1166,7 +1166,7 @@ def test_submission_help_then_human_mode(model_factory):
             "",  # Confirm exit
         ]
     ):
-        with patch("minisweagent.agents.interactive.console.print") as mock_print:
+        with patch("gemmacode.agents.interactive.console.print") as mock_print:
             agent = InteractiveAgent(
                 model=factory(
                     [("Finishing", [{"command": "echo 'COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT'\necho 'initial'"}])],

@@ -40,7 +40,7 @@ You can set `model_kwargs` in an agent config file like the following one:
 ??? note "Default configuration file"
 
     ```yaml
-    --8<-- "src/minisweagent/config/mini.yaml"
+    --8<-- "src/gemmacode/config/mini.yaml"
     ```
 
 In the last section, you can add
@@ -65,11 +65,11 @@ If this is not enough, our model class should be simple to modify:
 
 ??? note "Complete model class"
 
-    - [Read on GitHub](https://github.com/swe-agent/gemma-code/blob/main/src/minisweagent/models/litellm_model.py)
+    - [Read on GitHub](https://github.com/swe-agent/gemma-code/blob/main/src/gemmacode/models/litellm_model.py)
     - [API reference](../reference/models/litellm.md)
 
     ```python
-    --8<-- "src/minisweagent/models/litellm_model.py"
+    --8<-- "src/gemmacode/models/litellm_model.py"
     ```
 
 The other part that you most likely need to figure out are costs.
@@ -159,7 +159,7 @@ vllm serve ricdomolm/mini-coder-1.7b &
 
 By default, the server will be available at `http://localhost:8000`.
 
-Second, edit the gemma-code SWE-bench config file located in `src/minisweagent/config/benchmarks/swebench.yaml` to include your local vLLM model:
+Second, edit the gemma-code SWE-bench config file located in `src/gemmacode/config/benchmarks/swebench.yaml` to include your local vLLM model:
 
 ```yaml
 model:
