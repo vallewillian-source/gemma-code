@@ -51,13 +51,7 @@ def parse_toolcall_actions_response(output: list, *, format_error_template: str)
             )
     if not tool_calls:
         error_text = Template(format_error_template, undefined=StrictUndefined).render(
-            error=(
-                "No tool calls found in the response. "
-                "Every actionable assistant turn MUST include at least one native `bash` tool call. "
-                "Do not substitute plain text, markdown, or a code block for the tool call. "
-                "The only supported tool is `bash`, and its arguments must be valid JSON like "
-                '`{"command": "your_command_here"}`.'
-            ),
+            error="No tool calls found in the response. Every response MUST include at least one tool call.",
             actions=[],
         )
         raise FormatError(_format_error_message(error_text))
@@ -70,12 +64,9 @@ def parse_toolcall_actions_response(output: list, *, format_error_template: str)
         except Exception as e:
             error_msg = f"Error parsing tool call arguments: {e}."
         if tool_call.get("name") != "bash":
-            error_msg += f"Unknown tool '{tool_call.get('name')}'. The only supported tool is `bash`."
+            error_msg += f"Unknown tool '{tool_call.get('name')}'."
         if not isinstance(args, dict) or "command" not in args:
-            error_msg += (
-                " Missing `command` argument in bash tool call. "
-                'The arguments must be valid JSON like `{"command": "your_command_here"}`.'
-            )
+            error_msg += "Missing 'command' argument in bash tool call."
         if error_msg:
             error_text = Template(format_error_template, undefined=StrictUndefined).render(
                 error=error_msg.strip(), actions=[]

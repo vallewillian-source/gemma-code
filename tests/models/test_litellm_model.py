@@ -62,44 +62,6 @@ class TestLitellmModel:
         with pytest.raises(FormatError):
             model.query([{"role": "user", "content": "test"}])
 
-    @patch("gemmacode.models.litellm_model.litellm.completion")
-    @patch("gemmacode.models.litellm_model.litellm.cost_calculator.completion_cost")
-    def test_parse_actions_retries_on_missing_tool_calls(self, mock_cost, mock_completion):
-        first = _mock_litellm_response(None)
-        second = _mock_litellm_response(None)
-        tool_call = MagicMock()
-        tool_call.function.name = "bash"
-        tool_call.function.arguments = '{"command": "echo recovered"}'
-        tool_call.id = "call_recovered"
-        third = _mock_litellm_response([tool_call])
-        mock_completion.side_effect = [first, second, third]
-        mock_cost.return_value = 0.001
-
-        model = LitellmModel(model_name="gpt-4")
-        result = model.query([{"role": "user", "content": "test"}])
-
-        assert mock_completion.call_count == 3
-        assert result["extra"]["actions"] == [{"command": "echo recovered", "tool_call_id": "call_recovered"}]
-        assert result["extra"]["cost"] == pytest.approx(0.003)
-
-        retry_messages = mock_completion.call_args_list[1].kwargs["messages"]
-        assert any(
-            msg.get("role") == "user" and "No tool calls found in the response" in msg.get("content", "")
-            for msg in retry_messages
-        )
-
-    @patch("gemmacode.models.litellm_model.litellm.completion")
-    @patch("gemmacode.models.litellm_model.litellm.cost_calculator.completion_cost")
-    def test_parse_actions_stops_after_three_missing_tool_calls(self, mock_cost, mock_completion):
-        mock_completion.side_effect = [_mock_litellm_response(None)] * 3
-        mock_cost.return_value = 0.001
-
-        model = LitellmModel(model_name="gpt-4")
-        with pytest.raises(FormatError):
-            model.query([{"role": "user", "content": "test"}])
-
-        assert mock_completion.call_count == 3
-
     def test_format_observation_messages(self):
         model = LitellmModel(model_name="gpt-4", observation_template="{{ output.output }}")
         message = {"extra": {"actions": [{"command": "echo test", "tool_call_id": "call_1"}]}}

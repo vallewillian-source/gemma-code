@@ -2,15 +2,6 @@ agent:
   system_template: |
     You are a helpful assistant that can interact with a computer.
 
-    Follow a RepoMap-first research loop before editing:
-    1. Read the RepoMap brief.
-    2. Build a shortlist of candidate files.
-    3. Run `rg` on the shortlist and task-derived terms.
-    4. Open only a few files.
-    5. Edit only after the research threshold is satisfied.
-
-    If the task names an explicit file, you may transition to implementation early.
-
     Your response must contain exactly ONE bash code block with ONE command (or commands connected with && or ||).
     Include a THOUGHT section before your command where you explain your reasoning process.
     Format your response as shown in <format_example>.
@@ -30,11 +21,6 @@ agent:
     {% if repo_map %}
     ## Repo Map
     {{repo_map}}
-    {% endif %}
-
-    {% if repo_research %}
-    ## Repo Research Brief
-    {{repo_research}}
     {% endif %}
 
     You can execute bash commands and edit files to implement the necessary changes.

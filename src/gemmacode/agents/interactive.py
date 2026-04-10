@@ -50,13 +50,11 @@ class InteractiveAgent(DefaultAgent):
         return preview
 
     def _message_stage(self, msg: dict, role: str) -> tuple[str, str]:
-        if msg.get("extra", {}).get("blocked"):
-            return "Edição bloqueada", "yellow"
         if role == "assistant":
             return "Resposta do modelo", "magenta"
         if role == "system":
             return "Contexto do sistema carregado", "cyan"
-        if role == "user" and ("returncode" in get_content_string(msg) or msg.get("extra", {}).get("actions")):
+        if role == "user" and msg.get("extra", {}).get("actions"):
             return "Observação do ambiente recebida", "green"
         if role == "user":
             return "Tarefa carregada", "blue"
@@ -163,18 +161,7 @@ class InteractiveAgent(DefaultAgent):
                             symbol="→",
                         )
                     )
-                    output = self._execute_action(action)
-                    outputs.append(output)
-                    if output.get("extra", {}).get("blocked"):
-                        console.print(
-                            build_status_text(
-                                "Pesquisa insuficiente",
-                                "refaça a exploração com RepoMap, shortlist e rg",
-                                color="yellow",
-                                symbol="!",
-                            )
-                        )
-                        break
+                    outputs.append(self.env.execute(action))
         except Submitted as e:
             self._check_for_new_task_or_submit(e)
         finally:
