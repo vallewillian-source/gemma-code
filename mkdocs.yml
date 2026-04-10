@@ -1,5 +1,5 @@
-site_name: mini-SWE-agent documentation
-site_url: https://mini-swe-agent.com
+site_name: gemma-code documentation
+site_url: https://gemma-code.com
 theme:
   name: material
   icon:
@@ -63,7 +63,7 @@ nav:
     - "Overview": index.md
     - "Quick start": quickstart.md
     - "Command line usage":
-      - "<code>mini</code>": usage/mini.md
+      - "<code>gemma-code</code>": usage/mini.md
       - "Config": usage/config.md
       - "SWE-bench": usage/swebench.md
       - "Inspector": usage/inspector.md
@@ -109,8 +109,8 @@ nav:
       - "SwerexModalEnvironment": "reference/environments/swerex_modal.md"
     - Run Scripts:
       - "Hello World": "reference/run/hello_world.md"
-      - "mini": "reference/run/mini.md"
-      - "mini-extra": "reference/run/mini_extra.md"
+      - "gemma-code": "reference/run/mini.md"
+      - "gemma-code-extra": "reference/run/mini_extra.md"
       - "Config": "reference/run/config.md"
       - "Inspector": "reference/run/inspector.md"
       - "SWE-bench (batch)": "reference/run/swebench.md"
@@ -150,8 +150,8 @@ plugins:
               - "!^_"
               - "!^model_config"
               - "!^model_post_init"
-repo_url: https://github.com/SWE-agent/mini-SWE-agent
-repo_name: SWE-agent/mini-SWE-agent
+repo_url: https://github.com/vallewillian-source/gemma-code
+repo_name: vallewillian-source/gemma-code
 edit_uri: edit/main/docs/
 extra_javascript:
   - assets/js/sh-annotation.js

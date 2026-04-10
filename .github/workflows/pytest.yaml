@@ -64,7 +64,7 @@ jobs:
       - name: Install dependencies
         run: |
             uv pip install --python ${Python_ROOT_DIR} -e '.[full]'
-      - name: Configure mini-swe-agent
+      - name: Configure gemma-code
         run: |
           mini-extra config set MSWEA_CONFIGURED 'true'
           mini-extra config set OPENAI_API_KEY '${{ secrets.OPENAI_API_KEY }}'
@@ -77,4 +77,4 @@ jobs:
         uses: codecov/codecov-action@v6
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          slug: SWE-agent/mini-swe-agent
+          slug: SWE-agent/gemma-code

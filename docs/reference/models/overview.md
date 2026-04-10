@@ -1,6 +1,6 @@
 # Models Overview
 
-This page provides an overview of all available model classes in mini-SWE-agent.
+This page provides an overview of all available model classes in gemma-code.
 
 ## Model Classes
 

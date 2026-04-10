@@ -200,7 +200,7 @@ See [this guide](../advanced/environments.md) for more details.
 
 ??? note "Default config"
 
-    - [Read on GitHub](https://github.com/swe-agent/mini-swe-agent/blob/main/src/minisweagent/config/benchmarks/swebench.yaml)
+    - [Read on GitHub](https://github.com/swe-agent/gemma-code/blob/main/src/minisweagent/config/benchmarks/swebench.yaml)
 
     ```yaml
     --8<-- "src/minisweagent/config/benchmarks/swebench.yaml"
@@ -208,7 +208,7 @@ See [this guide](../advanced/environments.md) for more details.
 
 ??? note "`swebench.py` run script"
 
-    - [Read on GitHub](https://github.com/swe-agent/mini-swe-agent/blob/main/src/minisweagent/run/benchmarks/swebench.py)
+    - [Read on GitHub](https://github.com/swe-agent/gemma-code/blob/main/src/minisweagent/run/benchmarks/swebench.py)
     - [API reference](../reference/run/swebench.md)
 
     ```python
@@ -217,7 +217,7 @@ See [this guide](../advanced/environments.md) for more details.
 
 ??? note "`swebench_single.py` run script"
 
-    - [Read on GitHub](https://github.com/swe-agent/mini-swe-agent/blob/main/src/minisweagent/run/benchmarks/swebench_single.py)
+    - [Read on GitHub](https://github.com/swe-agent/gemma-code/blob/main/src/minisweagent/run/benchmarks/swebench_single.py)
     - [API reference](../reference/run/swebench_single.md)
 
     ```python

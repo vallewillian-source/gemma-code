@@ -16,7 +16,7 @@ def strip_ansi_codes(text: str) -> str:
 
 
 def test_configure_if_first_time_called():
-    """Test that configure_if_first_time is called when running mini main."""
+    """Test that configure_if_first_time is called when running gemma-code main."""
     with (
         patch("minisweagent.run.mini.configure_if_first_time") as mock_configure,
         patch("minisweagent.run.mini.get_agent") as mock_get_agent,
@@ -52,8 +52,8 @@ def test_configure_if_first_time_called():
         mock_configure.assert_called_once()
 
 
-def test_mini_command_calls_run_interactive():
-    """Test that mini command creates agent via get_agent."""
+def test_gemma_code_command_calls_run_interactive():
+    """Test that gemma-code command creates agent via get_agent."""
     with (
         patch("minisweagent.run.mini.configure_if_first_time"),
         patch("minisweagent.run.mini.get_agent") as mock_get_agent,
@@ -94,8 +94,8 @@ def test_mini_command_calls_run_interactive():
         mock_agent.run.assert_called_once_with("Test task")
 
 
-def test_mini_calls_prompt_when_no_task_provided():
-    """Test that mini calls prompt when no task is provided."""
+def test_gemma_code_calls_prompt_when_no_task_provided():
+    """Test that gemma-code calls prompt when no task is provided."""
     with (
         patch("minisweagent.run.mini.configure_if_first_time"),
         patch("minisweagent.run.mini._multiline_prompt") as mock_prompt,
@@ -138,8 +138,8 @@ def test_mini_calls_prompt_when_no_task_provided():
         mock_agent.run.assert_called_once_with("User provided task")
 
 
-def test_mini_with_explicit_model():
-    """Test that mini works with explicitly provided model."""
+def test_gemma_code_with_explicit_model():
+    """Test that gemma-code works with explicitly provided model."""
     with (
         patch("minisweagent.run.mini.configure_if_first_time"),
         patch("minisweagent.run.mini.get_agent") as mock_get_agent,
@@ -185,7 +185,7 @@ def test_mini_with_explicit_model():
 
 
 def test_yolo_mode_sets_correct_agent_config():
-    """Test that yolo mode sets the correct agent configuration."""
+    """Test that yolo mode sets the correct gemma-code configuration."""
     with (
         patch("minisweagent.run.mini.configure_if_first_time"),
         patch("minisweagent.run.mini.get_agent") as mock_get_agent,
@@ -227,7 +227,7 @@ def test_yolo_mode_sets_correct_agent_config():
 
 
 def test_confirm_mode_sets_correct_agent_config():
-    """Test that when yolo=False, no explicit mode is set (defaults to None)."""
+    """Test that when yolo=False, no explicit mode is set for gemma-code."""
     with (
         patch("minisweagent.run.mini.configure_if_first_time"),
         patch("minisweagent.run.mini.get_agent") as mock_get_agent,
@@ -268,8 +268,8 @@ def test_confirm_mode_sets_correct_agent_config():
         mock_agent.run.assert_called_once_with("Test confirm task")
 
 
-def test_mini_help():
-    """Test that mini --help works correctly."""
+def test_gemma_code_help():
+    """Test that gemma-code --help works correctly."""
     result = subprocess.run(
         [sys.executable, "-m", "minisweagent", "--help"],
         capture_output=True,
@@ -280,7 +280,7 @@ def test_mini_help():
     assert result.returncode == 0
     # Strip ANSI color codes for reliable text matching
     clean_output = strip_ansi_codes(result.stdout)
-    assert "Run mini-SWE-agent in your local environment." in clean_output
+    assert "Run gemma-code in your local environment." in clean_output
     assert "--help" in clean_output
     assert "--config" in clean_output
     assert "--model" in clean_output
@@ -289,7 +289,7 @@ def test_mini_help():
     assert "--output" in clean_output
 
 
-def test_mini_help_with_typer_runner():
+def test_gemma_code_help_with_typer_runner():
     """Test help functionality using typer's test runner."""
     from typer.testing import CliRunner
 
@@ -299,7 +299,7 @@ def test_mini_help_with_typer_runner():
     assert result.exit_code == 0
     # Strip ANSI color codes for reliable text matching
     clean_output = strip_ansi_codes(result.stdout)
-    assert "Run mini-SWE-agent in your local environment." in clean_output
+    assert "Run gemma-code in your local environment." in clean_output
     assert "--help" in clean_output
     assert "--config" in clean_output
     assert "--model" in clean_output
@@ -318,26 +318,26 @@ def test_python_m_minisweagent_help():
     )
 
     assert result.returncode == 0
-    assert "mini-SWE-agent" in result.stdout
+    assert "gemma-code" in result.stdout
 
 
-def test_mini_script_help():
-    """Test that the mini script entry point help works."""
+def test_gemma_code_script_help():
+    """Test that the gemma-code script entry point help works."""
     result = subprocess.run(
-        ["mini", "--help"],
+        ["gemma-code", "--help"],
         capture_output=True,
         text=True,
         timeout=10,
     )
 
     assert result.returncode == 0
-    assert "mini-SWE-agent" in result.stdout
+    assert "gemma-code" in result.stdout
 
 
-def test_mini_swe_agent_help():
-    """Test that mini-swe-agent --help works correctly."""
+def test_gemma_code_script_help_again():
+    """Test that gemma-code --help works correctly."""
     result = subprocess.run(
-        ["mini-swe-agent", "--help"],
+        ["gemma-code", "--help"],
         capture_output=True,
         text=True,
         timeout=10,
@@ -345,13 +345,13 @@ def test_mini_swe_agent_help():
 
     assert result.returncode == 0
     clean_output = strip_ansi_codes(result.stdout)
-    assert "mini-SWE-agent" in clean_output
+    assert "gemma-code" in clean_output
 
 
-def test_mini_extra_help():
-    """Test that mini-extra --help works correctly."""
+def test_gemma_code_extra_help():
+    """Test that gemma-code-extra --help works correctly."""
     result = subprocess.run(
-        ["mini-extra", "--help"],
+        ["gemma-code-extra", "--help"],
         capture_output=True,
         text=True,
         timeout=10,
@@ -365,10 +365,10 @@ def test_mini_extra_help():
     assert "swebench" in clean_output
 
 
-def test_mini_e_help():
-    """Test that mini-e --help works correctly."""
+def test_gemma_code_e_help():
+    """Test that gemma-code-e --help works correctly."""
     result = subprocess.run(
-        ["mini-e", "--help"],
+        ["gemma-code-e", "--help"],
         capture_output=True,
         text=True,
         timeout=10,
@@ -388,11 +388,11 @@ def test_mini_e_help():
         ("swebench-single", ["swebench-single"]),
     ],
 )
-def test_mini_extra_subcommand_help(subcommand: str, aliases: list[str]):
-    """Test that mini-extra subcommands --help work correctly."""
+def test_gemma_code_extra_subcommand_help(subcommand: str, aliases: list[str]):
+    """Test that gemma-code-extra subcommands --help work correctly."""
     for alias in aliases:
         result = subprocess.run(
-            ["mini-extra", alias, "--help"],
+            ["gemma-code-extra", alias, "--help"],
             capture_output=True,
             text=True,
             timeout=10,
@@ -403,10 +403,10 @@ def test_mini_extra_subcommand_help(subcommand: str, aliases: list[str]):
         assert len(result.stdout) > 0
 
 
-def test_mini_extra_config_help():
-    """Test that mini-extra config --help works correctly."""
+def test_gemma_code_extra_config_help():
+    """Test that gemma-code-extra config --help works correctly."""
     result = subprocess.run(
-        ["mini-extra", "config", "--help"],
+        ["gemma-code-extra", "config", "--help"],
         capture_output=True,
         text=True,
         timeout=10,

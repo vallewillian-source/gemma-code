@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
-"""Run mini-SWE-agent on SWE-bench instances in batch mode."""
-# Read this first: https://mini-swe-agent.com/latest/usage/swebench/  (usage docs)
+"""Run gemma-code on SWE-bench instances in batch mode."""
+# Read this first: https://gemma-code.com/latest/usage/swebench/  (usage docs)
 
 import concurrent.futures
 import json
@@ -25,10 +25,10 @@ from minisweagent.run.benchmarks.utils.batch_progress import RunBatchProgressMan
 from minisweagent.utils.log import add_file_handler, logger
 from minisweagent.utils.serialize import UNSET, recursive_merge
 
-_HELP_TEXT = """Run mini-SWE-agent on SWEBench instances.
+_HELP_TEXT = """Run gemma-code on SWEBench instances.
 
 [not dim]
-More information about the usage: [bold green]https://mini-swe-agent.com/latest/usage/swebench/[/bold green]
+More information about the usage: [bold green]https://gemma-code.com/latest/usage/swebench/[/bold green]
 [/not dim]
 """
 

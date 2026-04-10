@@ -29,7 +29,7 @@ class LitellmModelConfig(BaseModel):
     model_kwargs: dict[str, Any] = {}
     """Additional arguments passed to the API."""
     litellm_model_registry: Path | str | None = os.getenv("LITELLM_MODEL_REGISTRY_PATH")
-    """Model registry for cost tracking and model metadata. See the local model guide (https://mini-swe-agent.com/latest/models/local_models/) for more details."""
+    """Model registry for cost tracking and model metadata. See the local model guide (https://gemma-code.com/latest/models/local_models/) for more details."""
     set_cache_control: Literal["default_end"] | None = None
     """Set explicit cache control markers, for example for Anthropic models"""
     cost_tracking: Literal["default", "ignore_errors"] = os.getenv("MSWEA_COST_TRACKING", "default")
@@ -106,7 +106,7 @@ class LitellmModel:
                     "globally with export MSWEA_COST_TRACKING='ignore_errors'. "
                     "Alternatively check the 'Cost tracking' section in the documentation at "
                     "https://klieret.short.gy/mini-local-models. "
-                    " Still stuck? Please open a github issue at https://github.com/SWE-agent/mini-swe-agent/issues/new/choose!"
+                    " Still stuck? Please open a github issue at https://github.com/vallewillian-source/gemma-code/issues/new/choose!"
                 )
                 logger.critical(msg)
                 raise RuntimeError(msg) from e

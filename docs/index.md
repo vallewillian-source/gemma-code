@@ -1,5 +1,5 @@
 <div align="center">
-<img src="assets/mini-swe-agent-banner.svg" alt="mini-swe-agent banner" style="height: 7em"/>
+<img src="assets/gemma-code-banner.svg" alt="gemma-code banner" style="height: 7em"/>
 
 <h1 style="margin-bottom: 1ex;">The 100 line AI agent that's actually useful</h1>
 
@@ -10,18 +10,18 @@
 <a href="https://join.slack.com/t/swe-bench/shared_invite/zt-36pj9bu5s-o3_yXPZbaH2wVnxnss1EkQ">
     <img src="https://img.shields.io/badge/Slack-4A154B?style=for-the-badge&logo=slack&logoColor=white" alt="Slack">
 </a>
-<a href="https://github.com/SWE-agent/mini-swe-agent">
-    <img alt="GitHub Release" src="https://img.shields.io/github/v/release/swe-agent/mini-swe-agent?style=for-the-badge&logo=github&label=GitHub&labelColor=black&color=green" alt="GitHub Release">
+<a href="https://github.com/vallewillian-source/gemma-code">
+    <img alt="GitHub Release" src="https://img.shields.io/github/v/release/swe-agent/gemma-code?style=for-the-badge&logo=github&label=GitHub&labelColor=black&color=green" alt="GitHub Release">
 </a>
-<a href="https://pypi.org/project/mini-swe-agent/">
-    <img src="https://img.shields.io/pypi/v/mini-swe-agent?style=for-the-badge&logo=python&logoColor=white&labelColor=black&color=deeppink" alt="PyPI - Version">
+<a href="https://pypi.org/project/gemma-code/">
+    <img src="https://img.shields.io/pypi/v/gemma-code?style=for-the-badge&logo=python&logoColor=white&labelColor=black&color=deeppink" alt="PyPI - Version">
 </a>
 
 </div>
 
-!!! warning "This is mini-swe-agent v2"
+!!! warning "This is gemma-code v2"
 
-    Read the [migration guide](https://mini-swe-agent.com/latest/advanced/v2_migration/). For the previous version, check out the [v1 documentation](https://mini-swe-agent.com/v1/) or the [v1 branch](https://github.com/SWE-agent/mini-swe-agent/tree/v1).
+    Read the [migration guide](https://gemma-code.com/latest/advanced/v2_migration/). For the previous version, check out the [v1 documentation](https://gemma-code.com/v1/) or the [v1 branch](https://github.com/vallewillian-source/gemma-code/tree/v1).
 
 In 2024, [SWE-bench](https://swebench.com) & [SWE-agent](https://swe-agent.com) helped kickstart the coding agent revolution.
 
@@ -30,15 +30,15 @@ We now ask: **What if our agent was 100x simpler, and still worked nearly as wel
 `mini` is
 
 - **Widely adopted**: Used by Meta, NVIDIA, Essential AI, IBM, Nebius, Anyscale, Princeton University, Stanford University, and many more.
-- **Minimal**: Just [100 lines of python](https://github.com/SWE-agent/mini-swe-agent/blob/main/src/minisweagent/agents/default.py) (+100 total for [env](https://github.com/SWE-agent/mini-swe-agent/blob/main/src/minisweagent/environments/local.py),
-[model](https://github.com/SWE-agent/mini-swe-agent/blob/main/src/minisweagent/models/litellm_model.py), [script](https://github.com/SWE-agent/mini-swe-agent/blob/main/src/minisweagent/run/hello_world.py)) — no fancy dependencies!
+- **Minimal**: Just [100 lines of python](https://github.com/vallewillian-source/gemma-code/blob/main/src/minisweagent/agents/default.py) (+100 total for [env](https://github.com/vallewillian-source/gemma-code/blob/main/src/minisweagent/environments/local.py),
+[model](https://github.com/vallewillian-source/gemma-code/blob/main/src/minisweagent/models/litellm_model.py), [script](https://github.com/vallewillian-source/gemma-code/blob/main/src/minisweagent/run/hello_world.py)) — no fancy dependencies!
 - **Performant:** Scores >74% on the [SWE-bench verified benchmark](https://www.swebench.com/); starts much faster than Claude Code
 - **Deployable:** Supports **local environments**, **docker/podman**, **singularity/apptainer**, **bublewrap**, **contree**, and more
 - **Compatible:** Supports all models via **litellm**, **openrouter**, **portkey**, and more. Support for `/completion` and `/response` endpoints, interleaved thinking etc.
 - Built by the Princeton & Stanford team behind [SWE-bench](https://swebench.com), [SWE-agent](https://swe-agent.com), and more
-- **Tested:** [![Codecov](https://img.shields.io/codecov/c/github/swe-agent/mini-swe-agent?style=flat-square)](https://codecov.io/gh/SWE-agent/mini-swe-agent)
+- **Tested:** [![Codecov](https://img.shields.io/codecov/c/github/swe-agent/gemma-code?style=flat-square)](https://codecov.io/gh/SWE-agent/gemma-code)
 
-??? note "Why use mini-SWE-agent for research?"
+??? note "Why use gemma-code for research?"
 
     [SWE-agent](https://swe-agent.com/latest/) jump-started the development of AI agents in 2024. Back then, we placed a lot of emphasis on tools and special interfaces for the agent. However, one year later, a lot of this is not needed at all to build a useful agent!
 
@@ -56,7 +56,7 @@ We now ask: **What if our agent was 100x simpler, and still worked nearly as wel
     This makes it perfect as a baseline system and for a system that puts the language model (rather than the agent scaffold) in the middle of our attention.
     You can see the result on the [SWE-bench (bash only)](https://www.swebench.com/) leaderboard, that evaluates the performance of different LMs with `mini`.
 
-??? note "Why use mini-SWE-agent as a tool?"
+??? note "Why use gemma-code as a tool?"
 
     Some agents are overfitted research artifacts. Others are UI-heavy frontend monsters.
 
@@ -73,14 +73,14 @@ We now ask: **What if our agent was 100x simpler, and still worked nearly as wel
       Want it to do something specific like opening a PR?
       Just tell the LM to figure it out rather than spending time to implement it in the agent.
     - **Executes actions with `subprocess.run`** — every action is completely independent (as opposed to keeping a stateful shell session running).
-      This is [a big deal](https://mini-swe-agent.com/latest/faq/#why-no-shell-session) for the stability of the agent, trust me.
+      This is [a big deal](https://gemma-code.com/latest/faq/#why-no-shell-session) for the stability of the agent, trust me.
     - **Has a completely linear history** — every step of the agent just appends to the messages that are passed to the LM in the next step and that's it.
       This is great for debugging and understanding what the LM is prompted with.
 
-??? note "Should I use mini-SWE-agent or swe-agent?"
+??? note "Should I use gemma-code or swe-agent?"
 
-    You should consider `mini-swe-agent` your default choice.
-    In particular, you should use `mini-swe-agent` if
+    You should consider `gemma-code` your default choice.
+    In particular, you should use `gemma-code` if
 
     - You want a quick command line tool that works locally
     - You want an agent with a very simple control flow
@@ -162,7 +162,7 @@ agent.run("Write a sudoku game")</code></pre>
         <span class="material-icons nav-card-icon">launch</span>
         <span class="nav-card-title">Installation & Quick Start</span>
       </div>
-      <p class="nav-card-description">Get started with mini-SWE-agent</p>
+      <p class="nav-card-description">Get started with gemma-code</p>
     </div>
   </a>
 
@@ -210,12 +210,12 @@ agent.run("Write a sudoku game")</code></pre>
 ## 📣 News
 
 * [New tutorial on building minimal AI agents](https://minimal-agent.com/)
-* Nov 19: [Gemini 3 Pro reaches 74% on SWE-bench verified with mini-swe-agent!](https://x.com/KLieret/status/1991164693839270372)
+* Nov 19: [Gemini 3 Pro reaches 74% on SWE-bench verified with gemma-code!](https://x.com/KLieret/status/1991164693839270372)
 * Aug 19: [New blogpost: Randomly switching between GPT-5 and Sonnet 4 boosts performance](https://www.swebench.com/post-250820-mini-roulette.html)
 
 ## 📣 New features
 
-Please check the [github release notes](https://github.com/SWE-agent/mini-swe-agent/releases) for the latest updates.
+Please check the [github release notes](https://github.com/vallewillian-source/gemma-code/releases) for the latest updates.
 
 ## 📣 Documentation updates
 

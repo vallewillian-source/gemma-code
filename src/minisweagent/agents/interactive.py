@@ -45,7 +45,7 @@ class InteractiveAgent(DefaultAgent):
             role, content = msg.get("role") or msg.get("type", "unknown"), get_content_string(msg)
             if role == "assistant":
                 console.print(
-                    f"\n[red][bold]mini-swe-agent[/bold] (step [bold]{self.n_calls}[/bold], [bold]${self.cost:.2f}[/bold]):[/red]\n",
+                    f"\n[red][bold]gemma-code[/bold] (step [bold]{self.n_calls}[/bold], [bold]${self.cost:.2f}[/bold]):[/red]\n",
                     end="",
                     highlight=False,
                 )

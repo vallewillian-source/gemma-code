@@ -30,7 +30,7 @@ Different agent classes might have slightly different configuration options.
 You can find the full list of options in the [API reference](../reference/agents/default.md).
 
 To use a different agent class, you can set the `agent_class` key to the name of the agent class you want to use
-or even to an import path (to use your own custom agent class even if it is not yet part of the mini-SWE-agent package).
+or even to an import path (to use your own custom agent class even if it is not yet part of the gemma-code package).
 
 ### Prompt templates
 
@@ -77,7 +77,7 @@ However, you can also do fairly complicated logic like this directly from your t
 
 In all builtin agents, you can use the following variables:
 
-- Environment variables (`LocalEnvironment` only, see discussion [here](https://github.com/SWE-agent/mini-swe-agent/pull/425))
+- Environment variables (`LocalEnvironment` only, see discussion [here](https://github.com/vallewillian-source/gemma-code/pull/425))
 - Agent config variables (i.e., anything that was set in the `agent` section of the config file, e.g., `step_limit`, `cost_limit`, etc.)
 - Environment config variables (i.e., anything that was set in the `environment` section of the config file, e.g., `cwd`, `timeout`, etc.)
 - Variables passed to the `run` method of the agent (by default that's only `task`, but you can pass other variables if you want to)
@@ -89,7 +89,7 @@ Make sure to use the appropriate model class and matching configuration.
 
 ### Custom Action Parsing from Text
 
-mini-SWE-agent can parse actions from markdown code blocks (` ```mswea_bash_command ... ``` `) or from tool calls.
+gemma-code can parse actions from markdown code blocks (` ```mswea_bash_command ... ``` `) or from tool calls.
 You can customize this behavior by setting the `action_regex` field to support different formats like XML.
 
 !!! warning "Important"

@@ -3,7 +3,7 @@ This file provides:
 
 - Path settings for global config file & relative directories
 - Version numbering
-- Protocols for the core components of mini-swe-agent.
+- Protocols for the core components of gemma-code.
   By the magic of protocols & duck typing, you can pretty much ignore them,
   unless you want the static type checking.
 """
@@ -23,13 +23,13 @@ from minisweagent.utils.log import logger
 package_dir = Path(__file__).resolve().parent
 
 
-global_config_dir = Path(os.getenv("MSWEA_GLOBAL_CONFIG_DIR") or user_config_dir("mini-swe-agent"))
+global_config_dir = Path(os.getenv("MSWEA_GLOBAL_CONFIG_DIR") or user_config_dir("gemma-code"))
 global_config_dir.mkdir(parents=True, exist_ok=True)
 global_config_file = Path(global_config_dir) / ".env"
 
 if not os.getenv("MSWEA_SILENT_STARTUP"):
     Console().print(
-        f"👋 This is [bold green]mini-swe-agent[/bold green] version [bold green]{__version__}[/bold green].\n"
+        f"👋 This is [bold green]gemma-code[/bold green] version [bold green]{__version__}[/bold green].\n"
         f"Check the [bold red]v2 migration guide[/] at [bold red]https://klieret.short.gy/mini-v2-migration[/]\n"
         f"Loading global config from [bold green]'{global_config_file}'[/bold green]",
     )

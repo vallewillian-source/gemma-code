@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
-"""Run mini-SWE-agent in your local environment. This is the default executable `mini`."""
-# Read this first: https://mini-swe-agent.com/latest/usage/mini/  (usage)
+"""Run gemma-code in your local environment. This is the default executable `mini`."""
+# Read this first: https://gemma-code.com/latest/usage/mini/  (usage)
 
 import os
 from pathlib import Path
@@ -23,10 +23,10 @@ DEFAULT_CONFIG_FILE = Path(os.getenv("MSWEA_MINI_CONFIG_PATH", builtin_config_di
 DEFAULT_OUTPUT_FILE = global_config_dir / "last_mini_run.traj.json"
 
 
-_HELP_TEXT = """Run mini-SWE-agent in your local environment.
+_HELP_TEXT = """Run gemma-code in your local environment.
 
 [not dim]
-More information about the usage: [bold green]https://mini-swe-agent.com/latest/usage/mini/[/bold green]
+More information about the usage: [bold green]https://gemma-code.com/latest/usage/mini/[/bold green]
 [/not dim]
 """
 

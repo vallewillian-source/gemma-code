@@ -2,7 +2,7 @@
 
 !!! note "LiteLLM Response API Model class"
 
-    - [Read on GitHub](https://github.com/swe-agent/mini-swe-agent/blob/main/src/minisweagent/models/litellm_response_model.py)
+    - [Read on GitHub](https://github.com/swe-agent/gemma-code/blob/main/src/minisweagent/models/litellm_response_model.py)
 
     ??? note "Full source code"
 

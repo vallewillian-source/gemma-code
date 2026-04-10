@@ -1,1 +1,1 @@
-"""Benchmark run scripts for mini-SWE-agent (e.g., SWE-bench)."""
+"""Benchmark run scripts for gemma-code (e.g., SWE-bench)."""

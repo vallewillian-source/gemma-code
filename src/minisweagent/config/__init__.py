@@ -1,4 +1,4 @@
-"""Configuration files and utilities for mini-SWE-agent."""
+"""Configuration files and utilities for gemma-code."""
 
 import json
 import os

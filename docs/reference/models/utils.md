@@ -2,7 +2,7 @@
 
 !!! note "Model Utilities"
 
-    - [Read on GitHub](https://github.com/swe-agent/mini-swe-agent/blob/main/src/minisweagent/models/__init__.py)
+    - [Read on GitHub](https://github.com/swe-agent/gemma-code/blob/main/src/minisweagent/models/__init__.py)
 
     ??? note "Full source code"
 

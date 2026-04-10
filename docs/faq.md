@@ -2,13 +2,13 @@
 
 ## General
 
-!!! question "Does mini-SWE-agent work on my system?"
+!!! question "Does gemma-code work on my system?"
 
-    mini-SWE-agent should work on any system that has a bash shell or uses a container runtime (e.g., docker, singularity, apptainer, etc.) to emulate one.
+    gemma-code should work on any system that has a bash shell or uses a container runtime (e.g., docker, singularity, apptainer, etc.) to emulate one.
 
-??? question "Should I use mini-SWE-agent or swe-agent?"
+??? question "Should I use gemma-code or swe-agent?"
 
-    You should use `mini-swe-agent` if
+    You should use `gemma-code` if
 
     - You want a quick command line tool that works locally
     - You want an agent with a very simple control flow
@@ -36,9 +36,9 @@
     - Executes actions with `subprocess.run` — every action is completely independent (as opposed to keeping a stateful shell session running).
       This [avoids so many issues](#why-no-shell-session), trust me.
 
-??? question "What are the limitations of mini-SWE-agent?"
+??? question "What are the limitations of gemma-code?"
 
-    mini-SWE-agent can be extended trivially in various ways, the following assumes the default setup.
+    gemma-code can be extended trivially in various ways, the following assumes the default setup.
     As reflected in the high SWE-bench scores, none of the following limitations are a problem in practice.
 
     - No tools other than bash
@@ -61,7 +61,7 @@
 
 !!! question "What models do you support?"
 
-    Currently, mini-SWE-agent supports all models that are supported by [litellm](https://github.com/BerriAI/litellm)
+    Currently, gemma-code supports all models that are supported by [litellm](https://github.com/BerriAI/litellm)
     or [OpenRouter](https://openrouter.ai/)
     and we're open to extend the `models/` directory with more models should `litellm` not support them.
 

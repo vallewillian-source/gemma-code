@@ -8,7 +8,7 @@
 
 !!! tip "Examples"
 
-    * [Issue #303](https://github.com/SWE-agent/mini-swe-agent/issues/303) has several examples of how to use local models.
+    * [Issue #303](https://github.com/vallewillian-source/gemma-code/issues/303) has several examples of how to use local models.
     * We also welcome concrete examples of how to use local models per pull request into this guide.
 
 ## Using litellm
@@ -65,7 +65,7 @@ If this is not enough, our model class should be simple to modify:
 
 ??? note "Complete model class"
 
-    - [Read on GitHub](https://github.com/swe-agent/mini-swe-agent/blob/main/src/minisweagent/models/litellm_model.py)
+    - [Read on GitHub](https://github.com/swe-agent/gemma-code/blob/main/src/minisweagent/models/litellm_model.py)
     - [API reference](../reference/models/litellm.md)
 
     ```python
@@ -159,7 +159,7 @@ vllm serve ricdomolm/mini-coder-1.7b &
 
 By default, the server will be available at `http://localhost:8000`.
 
-Second, edit the mini-swe-agent SWE-bench config file located in `src/minisweagent/config/benchmarks/swebench.yaml` to include your local vLLM model:
+Second, edit the gemma-code SWE-bench config file located in `src/minisweagent/config/benchmarks/swebench.yaml` to include your local vLLM model:
 
 ```yaml
 model:

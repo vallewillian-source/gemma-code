@@ -2,9 +2,9 @@
 
 !!! danger "Breaking Changes"
 
-    **mini-swe-agent v2.0** brings major improvements but requires migration.
-    To stay with v1.x, pin your dependency: `mini-swe-agent~=1.0`.
-    See the [v1 documentation](https://mini-swe-agent.com/v1/) or the [v1 branch on GitHub](https://github.com/SWE-agent/mini-swe-agent/tree/v1).
+    **gemma-code v2.0** brings major improvements but requires migration.
+    To stay with v1.x, pin your dependency: `gemma-code~=1.0`.
+    See the [v1 documentation](https://gemma-code.com/v1/) or the [v1 branch on GitHub](https://github.com/vallewillian-source/gemma-code/tree/v1).
 
 ## What's new
 
@@ -159,7 +159,7 @@ In other words: the exact message structure depends on the model you use.
 
 **New environment:**
 
-- **`swerex_modal`**: Run environments on Modal (requires `pip install mini-swe-agent[modal]`)
+- **`swerex_modal`**: Run environments on Modal (requires `pip install gemma-code[modal]`)
 
 ## Architecture changes
 
@@ -173,8 +173,8 @@ In other words: the exact message structure depends on the model you use.
 
 ### Protocol changes
 
-If you want to write a custom Model, Environment or Agent compatible with `mini-swe-agent`, you don't need to subclass anything.
-Rather, mini-swe-agent fully uses duck typing with [protocols](https://typing.python.org/en/latest/spec/protocol.html)
+If you want to write a custom Model, Environment or Agent compatible with `gemma-code`, you don't need to subclass anything.
+Rather, gemma-code fully uses duck typing with [protocols](https://typing.python.org/en/latest/spec/protocol.html)
 (tl;dr: as long as you implement the required methods, you can use any class as a Model, Environment or Agent).
 Config options like `--config-class` also take full import classes, so you can put your classes wherever you want.
 

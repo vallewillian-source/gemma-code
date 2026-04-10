@@ -2,7 +2,7 @@
 
 !!! abstract "Overview"
 
-    * The `inspector` is a tool that allows you to browse `.traj.json` files that show the history of a mini-SWE-agent run.
+    * The `inspector` is a tool that allows you to browse `.traj.json` files that show the history of a gemma-code run.
     * Quickly start it with `mini-e i` or `mini-extra inspector`.
     * See [output files](output_files.md) for the trajectory file format.
     * Alternative: [jless](https://jless.io/) is a great command-line JSON viewer for browsing trajectories.
@@ -51,7 +51,7 @@ The inspector is implemented with [textual](https://textual.textualize.io/).
 
 ??? note "Implementation"
 
-    - [Read on GitHub](https://github.com/swe-agent/mini-swe-agent/blob/main/src/minisweagent/run/utilities/inspector.py)
+    - [Read on GitHub](https://github.com/swe-agent/gemma-code/blob/main/src/minisweagent/run/utilities/inspector.py)
 
     ```python linenums="1"
     --8<-- "src/minisweagent/run/utilities/inspector.py"

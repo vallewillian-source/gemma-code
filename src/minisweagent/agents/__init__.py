@@ -1,4 +1,4 @@
-"""Agent implementations for mini-SWE-agent."""
+"""Agent implementations for gemma-code."""
 
 import copy
 import importlib
