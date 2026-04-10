@@ -2769,7 +2769,7 @@ Take a look at the model registry section of the <a href="../local_models/">loca
 <p>We use <code>litellm</code> to calculate costs for Portkey models because Portkey doesn't seem to provide per-request cost information without
 very inconvenient APIs.</p>
 <p>This can lead to errors likethis:</p>
-<div class="highlight"><pre><span></span><code>  File "/opt/miniconda3/envs/clash/lib/python3.10/site-packages/minisweagent/models/portkey_model.py", line 85, in query
+<div class="highlight"><pre><span></span><code>  File "/opt/miniconda3/envs/clash/lib/python3.10/site-packages/gemmacode/models/portkey_model.py", line 85, in query
     cost = litellm.cost_calculator.completion_cost(response)
   File "/opt/miniconda3/envs/clash/lib/python3.10/site-packages/litellm/cost_calculator.py", line 973, in completion_cost
     raise e
