@@ -4,6 +4,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+pytest.importorskip("portkey_ai")
+
 from gemmacode.models import GLOBAL_MODEL_STATS
 from gemmacode.models.portkey_model import PortkeyModel, PortkeyModelConfig
 from gemmacode.models.utils.actions_toolcall import BASH_TOOL
@@ -87,6 +89,45 @@ def test_portkey_model_query():
                 )
                 # Verify cost calculation was called
                 mock_cost.assert_called_once_with(mock_response.model_copy(), model=None)
+
+
+def test_portkey_model_function_call_fallback():
+    """Test PortkeyModel.query handles legacy function_call payloads."""
+    mock_portkey_class = MagicMock()
+    mock_client = MagicMock()
+    mock_response = MagicMock()
+    mock_choice = MagicMock()
+    mock_message = MagicMock()
+
+    mock_message.tool_calls = None
+    mock_message.function_call = {"name": "bash", "arguments": json.dumps({"command": "echo legacy"}), "id": "call_legacy"}
+    mock_message.content = None
+    mock_message.model_dump.return_value = {
+        "role": "assistant",
+        "content": None,
+        "function_call": mock_message.function_call,
+    }
+    mock_choice.message = mock_message
+    mock_response.choices = [mock_choice]
+    mock_response.model_dump.return_value = {"test": "response"}
+    mock_response.model_copy.return_value = mock_response
+    mock_response.usage = MagicMock(prompt_tokens=10, completion_tokens=20, total_tokens=30)
+
+    mock_client.chat.completions.create.return_value = mock_response
+    mock_portkey_class.return_value = mock_client
+
+    with patch("gemmacode.models.portkey_model.Portkey", mock_portkey_class):
+        with patch.dict(os.environ, {"PORTKEY_API_KEY": "test-key"}):
+            with patch("gemmacode.models.portkey_model.litellm.cost_calculator.completion_cost") as mock_cost:
+                mock_cost.return_value = 0.01
+
+                model = PortkeyModel(model_name="gpt-4o")
+
+                messages = [{"role": "user", "content": "Hello!"}]
+                result = model.query(messages)
+
+                assert result["extra"]["actions"] == [{"command": "echo legacy", "tool_call_id": "call_legacy"}]
+                assert result["extra"]["response"] == {"test": "response"}
 
 
 def test_portkey_model_get_template_vars():

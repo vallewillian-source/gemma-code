@@ -9,6 +9,7 @@ from typing import Any, Literal
 import litellm
 from pydantic import BaseModel
 
+from gemmacode.exceptions import FormatError
 from gemmacode.models import GLOBAL_MODEL_STATS
 from gemmacode.models.utils.actions_toolcall import (
     BASH_TOOL,
@@ -18,7 +19,9 @@ from gemmacode.models.utils.actions_toolcall import (
 from gemmacode.models.utils.anthropic_utils import _reorder_anthropic_thinking_blocks
 from gemmacode.models.utils.cache_control import set_cache_control
 from gemmacode.models.utils.openai_multimodal import expand_multimodal_content
+from gemmacode.models.utils.tool_calls import collect_chat_tool_calls
 from gemmacode.models.utils.retry import retry
+from gemmacode.models.utils.verbose import emit_verbose_chat_response
 
 logger = logging.getLogger("litellm_model")
 
@@ -28,6 +31,8 @@ class LitellmModelConfig(BaseModel):
     """Model name. Highly recommended to include the provider in the model name, e.g., `anthropic/claude-sonnet-4-5-20250929`."""
     model_kwargs: dict[str, Any] = {}
     """Additional arguments passed to the API."""
+    verbose: bool = False
+    """Emit verbose diagnostics about raw model responses and tool-call parsing."""
     litellm_model_registry: Path | str | None = os.getenv("LITELLM_MODEL_REGISTRY_PATH")
     """Model registry for cost tracking and model metadata. See the local model guide (https://gemma-code.com/latest/models/local_models/) for more details."""
     set_cache_control: Literal["default_end"] | None = None
@@ -77,15 +82,43 @@ class LitellmModel:
         prepared = _reorder_anthropic_thinking_blocks(prepared)
         return set_cache_control(prepared, mode=self.config.set_cache_control)
 
+    def _format_verbose_error(self, error: Exception) -> str:
+        if isinstance(error, FormatError) and getattr(error, "messages", None):
+            first_message = error.messages[0] if error.messages else {}
+            if isinstance(first_message, dict):
+                return first_message.get("content") or error.__class__.__name__
+        return str(error) or error.__class__.__name__
+
     def query(self, messages: list[dict[str, str]], **kwargs) -> dict:
         for attempt in retry(logger=logger, abort_exceptions=self.abort_exceptions):
             with attempt:
                 response = self._query(self._prepare_messages_for_api(messages), **kwargs)
+        response_message = response.choices[0].message.model_dump()
+        finish_reason = getattr(response.choices[0], "finish_reason", None)
+        emit_verbose_chat_response(
+            verbose=self.config.verbose,
+            model_name=self.config.model_name,
+            response_kind=type(response).__name__,
+            message=response_message,
+            finish_reason=finish_reason,
+        )
         cost_output = self._calculate_cost(response)
         GLOBAL_MODEL_STATS.add(cost_output["cost"])
-        message = response.choices[0].message.model_dump()
+        message = response_message
+        try:
+            actions = self._parse_actions(response)
+        except FormatError as e:
+            emit_verbose_chat_response(
+                verbose=self.config.verbose,
+                model_name=self.config.model_name,
+                response_kind=type(response).__name__,
+                message=response_message,
+                finish_reason=finish_reason,
+                parse_error=self._format_verbose_error(e),
+            )
+            raise
         message["extra"] = {
-            "actions": self._parse_actions(response),
+            "actions": actions,
             "response": response.model_dump(),
             **cost_output,
             "timestamp": time.time(),
@@ -114,7 +147,7 @@ class LitellmModel:
 
     def _parse_actions(self, response) -> list[dict]:
         """Parse tool calls from the response. Raises FormatError if unknown tool."""
-        tool_calls = response.choices[0].message.tool_calls or []
+        tool_calls, _ = collect_chat_tool_calls(response.choices[0].message)
         return parse_toolcall_actions(tool_calls, format_error_template=self.config.format_error_template)
 
     def format_message(self, **kwargs) -> dict:

@@ -3,7 +3,7 @@
 This module keeps the primary agent model selection code-driven instead of
 asking the user at runtime. The current default policy is:
 
-- local execution model: Gemma via Ollama
+- local execution model: Qwen3-Coder via Ollama
 - future validator/orchestrator: DeepSeek via API
 """
 
@@ -24,15 +24,20 @@ DEFAULT_OLLAMA_BASE_URL = os.getenv(
     "GEMMACODE_OLLAMA_BASE_URL",
     os.getenv("OLLAMA_HOST", "http://192.168.0.23:11434"),
 )
+DEFAULT_OLLAMA_NUM_CTX = int(os.getenv("GEMMACODE_OLLAMA_NUM_CTX", "40960"))
 
 
 def normalize_local_model_name(model_name: str) -> str:
-    if model_name == "ollama/gemma4":
+    if model_name in {"qwen3-coder:30b", "qwen3-coder"}:
+        return "ollama/qwen3-coder:30b"
+    if model_name in {"ollama/qwen3-coder", "ollama/qwen3-coder:30b"}:
+        return "ollama/qwen3-coder:30b"
+    if model_name in {"ollama/gemma4", "ollama/gemma4:26b"}:
         return "ollama/gemma4:26b"
     return model_name
 
 
-DEFAULT_LOCAL_MODEL_NAME = normalize_local_model_name(os.getenv("GEMMACODE_LOCAL_MODEL_NAME", "ollama/gemma4:26b"))
+DEFAULT_LOCAL_MODEL_NAME = normalize_local_model_name(os.getenv("GEMMACODE_LOCAL_MODEL_NAME", "ollama/qwen3-coder:30b"))
 DEFAULT_LOCAL_MODEL_CLASS = os.getenv("GEMMACODE_LOCAL_MODEL_CLASS", "litellm")
 DEFAULT_VALIDATOR_MODEL_NAME = os.getenv("GEMMACODE_VALIDATOR_MODEL_NAME", "deepseek-v3.2")
 DEFAULT_VALIDATOR_BASE_URL = os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com")
@@ -65,9 +70,9 @@ def is_ollama_available(base_url: str | None = None) -> bool:
         return False
 
 
-def get_local_model_kwargs() -> dict[str, str]:
+def get_local_model_kwargs() -> dict[str, str | int]:
     """Return the default kwargs for the local Ollama model."""
-    return {"api_base": get_local_model_base_url()}
+    return {"api_base": get_local_model_base_url(), "num_ctx": DEFAULT_OLLAMA_NUM_CTX}
 
 
 def get_validator_settings() -> dict[str, str]:

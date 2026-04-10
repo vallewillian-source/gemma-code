@@ -17,6 +17,7 @@ from gemmacode.models.utils.actions_toolcall import (
 from gemmacode.models.utils.anthropic_utils import _reorder_anthropic_thinking_blocks
 from gemmacode.models.utils.cache_control import set_cache_control
 from gemmacode.models.utils.openai_multimodal import expand_multimodal_content
+from gemmacode.models.utils.tool_calls import collect_chat_tool_calls
 from gemmacode.models.utils.retry import retry
 
 logger = logging.getLogger("portkey_model")
@@ -117,7 +118,7 @@ class PortkeyModel:
 
     def _parse_actions(self, response) -> list[dict]:
         """Parse tool calls from the response. Raises FormatError if unknown tool."""
-        tool_calls = response.choices[0].message.tool_calls or []
+        tool_calls, _ = collect_chat_tool_calls(response.choices[0].message)
         return parse_toolcall_actions(tool_calls, format_error_template=self.config.format_error_template)
 
     def format_message(self, **kwargs) -> dict:

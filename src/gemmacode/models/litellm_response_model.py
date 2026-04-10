@@ -4,6 +4,7 @@ from collections.abc import Callable
 
 import litellm
 
+from gemmacode.exceptions import FormatError
 from gemmacode.models import GLOBAL_MODEL_STATS
 from gemmacode.models.litellm_model import LitellmModel, LitellmModelConfig
 from gemmacode.models.utils.actions_toolcall_response import (
@@ -12,6 +13,7 @@ from gemmacode.models.utils.actions_toolcall_response import (
     parse_toolcall_actions_response,
 )
 from gemmacode.models.utils.retry import retry
+from gemmacode.models.utils.verbose import emit_verbose_chat_response
 
 logger = logging.getLogger("litellm_response_model")
 
@@ -51,11 +53,31 @@ class LitellmResponseModel(LitellmModel):
         for attempt in retry(logger=logger, abort_exceptions=self.abort_exceptions):
             with attempt:
                 response = self._query(self._prepare_messages_for_api(messages), **kwargs)
+        response_message = response.model_dump() if hasattr(response, "model_dump") else dict(response)
+        emit_verbose_chat_response(
+            verbose=self.config.verbose,
+            model_name=self.config.model_name,
+            response_kind=type(response).__name__,
+            message=response_message,
+            finish_reason=getattr(response, "finish_reason", None),
+        )
         cost_output = self._calculate_cost(response)
         GLOBAL_MODEL_STATS.add(cost_output["cost"])
-        message = response.model_dump() if hasattr(response, "model_dump") else dict(response)
+        message = response_message
+        try:
+            actions = self._parse_actions(response)
+        except FormatError as e:
+            emit_verbose_chat_response(
+                verbose=self.config.verbose,
+                model_name=self.config.model_name,
+                response_kind=type(response).__name__,
+                message=response_message,
+                finish_reason=getattr(response, "finish_reason", None),
+                parse_error=self._format_verbose_error(e),
+            )
+            raise
         message["extra"] = {
-            "actions": self._parse_actions(response),
+            "actions": actions,
             **cost_output,
             "timestamp": time.time(),
         }

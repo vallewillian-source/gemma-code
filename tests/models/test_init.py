@@ -30,6 +30,11 @@ class TestGetModelName:
         with patch.dict(os.environ, {"GEMMACODE_LOCAL_MODEL_NAME": "ollama/gemma4"}, clear=True):
             assert get_model_name(None, {}) == "ollama/gemma4:26b"
 
+    def test_qwen_alias_is_normalized(self):
+        """Test that Qwen shorthand is normalized to the Ollama-prefixed model name."""
+        with patch.dict(os.environ, {"GEMMACODE_LOCAL_MODEL_NAME": "qwen3-coder:30b"}, clear=True):
+            assert get_model_name(None, {}) == "ollama/qwen3-coder:30b"
+
     def test_config_fallback(self):
         """Test that config model name is used when input and env are missing."""
         with patch.dict(os.environ, {}, clear=True):
@@ -142,6 +147,24 @@ class TestGetModel:
                 get_model("ollama/gemma4", {"outputs": [make_output("hello", [])]})
 
         assert captured["model_kwargs"]["api_base"] == "http://192.168.0.23:11434"
+
+    def test_ollama_models_get_default_num_ctx(self):
+        """Test that Ollama models automatically receive the larger default context window."""
+
+        captured = {}
+
+        def compatible_model(**kwargs):
+            captured.update(kwargs)
+            config_args = {k: v for k, v in kwargs.items() if k in ["outputs", "model_name"]}
+            if "outputs" not in config_args:
+                config_args["outputs"] = [make_output("default", [])]
+            return DeterministicModel(**config_args)
+
+        with patch("gemmacode.models.get_model_class") as mock_get_class:
+            mock_get_class.return_value = compatible_model
+            get_model("ollama/qwen3-coder:30b", {"outputs": [make_output("hello", [])]})
+
+        assert captured["model_kwargs"]["num_ctx"] == 40960
 
     def test_ollama_models_disable_cost_tracking_errors(self):
         """Test that local Ollama models do not fail on zero-cost calculations."""

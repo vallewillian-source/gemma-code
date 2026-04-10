@@ -94,6 +94,41 @@ def test_gemma_code_command_calls_run_interactive():
         mock_agent.run.assert_called_once_with("Test task")
 
 
+def test_verbose_flag_reaches_model_and_agent_configs():
+    """Test that --verbose is propagated into the runtime configs."""
+    with (
+        patch("gemmacode.run.mini.configure_if_first_time"),
+        patch("gemmacode.run.mini.get_agent") as mock_get_agent,
+        patch("gemmacode.run.mini.get_model") as mock_get_model,
+        patch("gemmacode.run.mini.get_environment") as mock_get_env,
+        patch("gemmacode.run.mini.get_config_from_spec") as mock_get_config,
+    ):
+        mock_model = Mock()
+        mock_get_model.return_value = mock_model
+        mock_environment = Mock()
+        mock_get_env.return_value = mock_environment
+        mock_get_config.return_value = {"agent": {"system_template": "test", "mode": "confirm"}, "env": {}, "model": {}}
+
+        mock_agent = Mock()
+        mock_agent.run.return_value = {"exit_status": "Success", "submission": "Result"}
+        mock_get_agent.return_value = mock_agent
+
+        main(
+            config_spec=[str(DEFAULT_CONFIG_FILE)],
+            model_name="test-model",
+            task="Test task",
+            yolo=False,
+            verbose=True,
+            output=None,
+            model_class=None,
+            agent_class=None,
+            environment_class=None,
+        )
+
+        assert mock_get_model.call_args.kwargs["config"]["verbose"] is True
+        assert mock_get_agent.call_args.args[2]["verbose"] is True
+
+
 def test_gemma_code_calls_prompt_when_no_task_provided():
     """Test that gemma-code calls prompt when no task is provided."""
     with (

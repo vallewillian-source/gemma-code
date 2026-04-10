@@ -16,6 +16,7 @@ from gemmacode.models.utils.actions_toolcall import (
 from gemmacode.models.utils.anthropic_utils import _reorder_anthropic_thinking_blocks
 from gemmacode.models.utils.cache_control import set_cache_control
 from gemmacode.models.utils.openai_multimodal import expand_multimodal_content
+from gemmacode.models.utils.tool_calls import collect_chat_tool_calls
 from gemmacode.models.utils.retry import retry
 
 logger = logging.getLogger("openrouter_model")
@@ -123,8 +124,7 @@ class OpenRouterModel:
 
     def _parse_actions(self, response: dict) -> list[dict]:
         """Parse tool calls from the response. Raises FormatError if unknown tool."""
-        tool_calls = response["choices"][0]["message"].get("tool_calls") or []
-        tool_calls = [_DictToObj(tc) for tc in tool_calls]
+        tool_calls, _ = collect_chat_tool_calls(response["choices"][0]["message"])
         return parse_toolcall_actions(tool_calls, format_error_template=self.config.format_error_template)
 
     def format_message(self, **kwargs) -> dict:
@@ -155,14 +155,3 @@ class OpenRouterModel:
                 },
             }
         }
-
-
-class _DictToObj:
-    """Simple wrapper to convert dict to object with attribute access."""
-
-    def __init__(self, d: dict):
-        self._d = d
-        self.id = d.get("id")
-        self.function = _DictToObj(d.get("function", {})) if "function" in d else None
-        self.name = d.get("name")
-        self.arguments = d.get("arguments")

@@ -1,5 +1,3 @@
-from unittest.mock import MagicMock
-
 import pytest
 
 from gemmacode.exceptions import FormatError
@@ -22,10 +20,7 @@ class TestParseToolcallActions:
         assert "No tool calls found" in exc_info.value.messages[0]["content"]
 
     def test_valid_bash_tool_call(self):
-        tool_call = MagicMock()
-        tool_call.function.name = "bash"
-        tool_call.function.arguments = '{"command": "echo hello"}'
-        tool_call.id = "call_123"
+        tool_call = {"id": "call_123", "function": {"name": "bash", "arguments": '{"command": "echo hello"}'}}
         assert parse_toolcall_actions([tool_call], format_error_template="{{ error }}") == [
             {"command": "echo hello", "tool_call_id": "call_123"}
         ]
@@ -33,10 +28,7 @@ class TestParseToolcallActions:
     def test_multiple_valid_tool_calls(self):
         calls = []
         for i in range(3):
-            tc = MagicMock()
-            tc.function.name = "bash"
-            tc.function.arguments = f'{{"command": "cmd{i}"}}'
-            tc.id = f"call_{i}"
+            tc = {"id": f"call_{i}", "function": {"name": "bash", "arguments": f'{{"command": "cmd{i}"}}'}}
             calls.append(tc)
         result = parse_toolcall_actions(calls, format_error_template="{{ error }}")
         assert len(result) == 3
@@ -44,31 +36,34 @@ class TestParseToolcallActions:
         assert result[2] == {"command": "cmd2", "tool_call_id": "call_2"}
 
     def test_unknown_tool_raises_format_error(self):
-        tool_call = MagicMock()
-        tool_call.function.name = "unknown_tool"
-        tool_call.function.arguments = '{"command": "test"}'
-        tool_call.id = "call_1"
+        tool_call = {"id": "call_1", "function": {"name": "unknown_tool", "arguments": '{"command": "test"}'}}
         with pytest.raises(FormatError) as exc_info:
             parse_toolcall_actions([tool_call], format_error_template="{{ error }}")
         assert "Unknown tool 'unknown_tool'" in exc_info.value.messages[0]["content"]
 
     def test_invalid_json_raises_format_error(self):
-        tool_call = MagicMock()
-        tool_call.function.name = "bash"
-        tool_call.function.arguments = "not valid json"
-        tool_call.id = "call_1"
+        tool_call = {"id": "call_1", "function": {"name": "bash", "arguments": "not valid json"}}
         with pytest.raises(FormatError) as exc_info:
             parse_toolcall_actions([tool_call], format_error_template="{{ error }}")
         assert "Error parsing tool call arguments" in exc_info.value.messages[0]["content"]
 
     def test_missing_command_raises_format_error(self):
-        tool_call = MagicMock()
-        tool_call.function.name = "bash"
-        tool_call.function.arguments = '{"other_arg": "value"}'
-        tool_call.id = "call_1"
+        tool_call = {"id": "call_1", "function": {"name": "bash", "arguments": '{"other_arg": "value"}'}}
         with pytest.raises(FormatError) as exc_info:
             parse_toolcall_actions([tool_call], format_error_template="{{ error }}")
         assert "Missing 'command' argument" in exc_info.value.messages[0]["content"]
+
+    def test_dict_tool_call_with_top_level_function_call_shape(self):
+        tool_call = {"id": "call_dict", "name": "bash", "arguments": '{"command": "pwd"}'}
+        assert parse_toolcall_actions([tool_call], format_error_template="{{ error }}") == [
+            {"command": "pwd", "tool_call_id": "call_dict"}
+        ]
+
+    def test_dict_tool_call_with_nested_function_shape(self):
+        tool_call = {"id": "call_nested", "function": {"name": "bash", "arguments": '{"command": "ls"}'}}
+        assert parse_toolcall_actions([tool_call], format_error_template="{{ error }}") == [
+            {"command": "ls", "tool_call_id": "call_nested"}
+        ]
 
 
 class TestFormatToolcallObservationMessages:

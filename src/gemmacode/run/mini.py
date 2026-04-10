@@ -34,6 +34,7 @@ More information about the usage: [bold green]https://gemma-code.com/latest/usag
 
 The model is selected automatically by the codebase.
 Type [bold green]/init[/bold green] to build the structural RepoMap without calling the model.
+[bold green]--verbose[/bold green] shows raw model-response diagnostics when tool-call parsing fails.
 """
 
 _CONFIG_SPEC_HELP_TEXT = """Path to config files, filenames, or key-value pairs.
@@ -95,6 +96,7 @@ def main(
     task: str | None = typer.Option(None, "-t", "--task", help="Task/problem statement", show_default=False),
     yolo: bool = typer.Option(True, "-y", "--yolo/--no-yolo", help="Run without confirmation. Enabled by default."),
     repo_map: bool = typer.Option(True, "--repo-map/--no-repo-map", help="Inject the RepoMap context into the initial prompt. Enabled by default."),
+    verbose: bool = typer.Option(False, "--verbose", help="Show raw model-response diagnostics and tool-call parsing details."),
     cost_limit: float | None = typer.Option(None, "-l", "--cost-limit", help="Cost limit. Set to 0 to disable."),
     config_spec: list[str] = typer.Option([str(DEFAULT_CONFIG_FILE)], "-c", "--config", help=_CONFIG_SPEC_HELP_TEXT),
     output: Path | None = typer.Option(DEFAULT_OUTPUT_FILE, "-o", "--output", help="Output trajectory file"),
@@ -119,12 +121,19 @@ def main(
             "cost_limit": cost_limit or UNSET,
             "confirm_exit": False if exit_immediately else UNSET,
             "output_path": output or UNSET,
+            "verbose": verbose if verbose else UNSET,
         },
         "environment": {
             "environment_class": environment_class or UNSET,
         },
+        "model": {
+            "verbose": verbose if verbose else UNSET,
+        },
     })
     config = recursive_merge(*configs)
+
+    if verbose:
+        console.print(build_status_text("Verbose mode", "model response diagnostics enabled", color="yellow", symbol="!"))
 
     if (run_task := config.get("run", {}).get("task", UNSET)) is UNSET:
         console.print("[bold yellow]What do you want to do?[/bold yellow]")

@@ -29,6 +29,8 @@ class AgentConfig(BaseModel):
     """Stop agent after exceeding (!) this cost."""
     output_path: Path | None = None
     """Save the trajectory to this path."""
+    verbose: bool = False
+    """Emit verbose diagnostics for the agent and model."""
 
 
 class DefaultAgent:

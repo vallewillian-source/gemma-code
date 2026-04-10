@@ -53,7 +53,9 @@ def get_model(input_model_name: str | None = None, config: dict | None = None) -
 
     if resolved_model_name.startswith("ollama/"):
         model_kwargs = config.setdefault("model_kwargs", {})
-        model_kwargs.setdefault("api_base", get_local_model_kwargs()["api_base"])
+        local_model_kwargs = get_local_model_kwargs()
+        model_kwargs.setdefault("api_base", local_model_kwargs["api_base"])
+        model_kwargs.setdefault("num_ctx", local_model_kwargs["num_ctx"])
         config.setdefault("cost_tracking", "ignore_errors")
 
     model_class = get_model_class(resolved_model_name, config.pop("model_class", ""))
