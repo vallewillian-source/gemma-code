@@ -35,7 +35,20 @@ Examples:
 [bold green]-c swebench.yaml -c model.model_kwargs.temperature=0.5[/bold green]
 
 [bold green]-c swebench.yaml -c agent.mode=yolo[/bold green]
+
+[bold green]-c no-yolo[/bold green] to force confirmation even though yolo is enabled by default.
 """
+
+
+def _split_no_yolo_config_specs(config_spec: list[str]) -> tuple[list[str], bool]:
+    cleaned_specs: list[str] = []
+    no_yolo_requested = False
+    for spec in config_spec:
+        if isinstance(spec, str) and spec.strip().lower().replace("_", "-") == "no-yolo":
+            no_yolo_requested = True
+            continue
+        cleaned_specs.append(spec)
+    return cleaned_specs, no_yolo_requested
 
 
 # fmt: off
@@ -48,7 +61,7 @@ def main(
     model_class: str | None = typer.Option(None, "--model-class", help="Model class to use (e.g., 'anthropic' or 'gemmacode.models.anthropic.AnthropicModel')", rich_help_panel="Advanced"),
     agent_class: str | None = typer.Option(None, "--agent-class", help="Agent class to use (e.g., 'interactive' or 'gemmacode.agents.interactive.InteractiveAgent')", rich_help_panel="Advanced"),
     environment_class: str | None = typer.Option(None, "--environment-class", help="Environment class to use (e.g., 'docker' or 'gemmacode.environments.docker.DockerEnvironment')", rich_help_panel="Advanced"),
-    yolo: bool = typer.Option(False, "-y", "--yolo", help="Run without confirmation"),
+    yolo: bool = typer.Option(True, "-y", "--yolo/--no-yolo", help="Run without confirmation. Enabled by default."),
     cost_limit: float | None = typer.Option(None, "-l", "--cost-limit", help="Cost limit. Set to 0 to disable."),
     config_spec: list[str] = typer.Option([str(DEFAULT_CONFIG_FILE)], "-c", "--config", help=_CONFIG_SPEC_HELP_TEXT, rich_help_panel="Basic"),
     exit_immediately: bool = typer.Option(False, "--exit-immediately", help="Exit immediately when the agent wants to finish instead of prompting.", rich_help_panel="Advanced"),
@@ -67,11 +80,13 @@ def main(
     instance: dict = instances[instance_spec]  # type: ignore
 
     logger.info(f"Building agent config from specs: {config_spec}")
+    config_spec, no_yolo_requested = _split_no_yolo_config_specs(config_spec)
+    yolo = yolo and not no_yolo_requested
     configs = [get_config_from_spec(spec) for spec in config_spec]
     configs.append({
         "agent": {
             "agent_class": agent_class or UNSET,
-            "mode": "yolo" if yolo else UNSET,
+            "mode": "yolo" if yolo else "confirm",
             "cost_limit": cost_limit or UNSET,
             "confirm_exit": False if exit_immediately else UNSET,
             "output_path": output or UNSET,

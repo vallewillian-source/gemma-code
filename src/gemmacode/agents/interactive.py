@@ -229,7 +229,8 @@ class InteractiveAgent(DefaultAgent):
                 f"[bold green]/y[/bold green] to switch to [bold yellow]yolo[/bold yellow] mode (execute LM commands without confirmation)\n"
                 f"[bold green]/c[/bold green] to switch to [bold yellow]confirmation[/bold yellow] mode (ask for confirmation before executing LM commands)\n"
                 f"[bold green]/u[/bold green] to switch to [bold yellow]human[/bold yellow] mode (execute commands issued by the user)\n"
-                f"[bold green]/m[/bold green] to enter multiline comment",
+                f"[bold green]/m[/bold green] to enter multiline comment "
+                f"([bold yellow]Enter[/bold yellow] sends, [bold yellow]Shift+Enter[/bold yellow] adds a new line)",
             )
             return self._prompt_and_handle_slash_commands(prompt)
         if user_input in self._MODE_COMMANDS_MAPPING:

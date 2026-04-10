@@ -210,7 +210,6 @@ def test_yolo_mode_sets_correct_agent_config():
             config_spec=[str(DEFAULT_CONFIG_FILE)],
             model_name="test-model",
             task="Test yolo task",
-            yolo=True,
             output=None,
             model_class=None,
             agent_class=None,
@@ -226,8 +225,8 @@ def test_yolo_mode_sets_correct_agent_config():
         mock_agent.run.assert_called_once_with("Test yolo task")
 
 
-def test_confirm_mode_sets_correct_agent_config():
-    """Test that when yolo=False, no explicit mode is set for gemma-code."""
+def test_no_yolo_mode_sets_correct_agent_config():
+    """Test that when yolo is disabled, confirm mode is set explicitly."""
     with (
         patch("gemmacode.run.mini.configure_if_first_time"),
         patch("gemmacode.run.mini.get_agent") as mock_get_agent,
@@ -247,7 +246,7 @@ def test_confirm_mode_sets_correct_agent_config():
         mock_agent.run.return_value = {"exit_status": "Success", "submission": "Result"}
         mock_get_agent.return_value = mock_agent
 
-        # Call main function with yolo=False (default)
+        # Call main function with --no-yolo
         main(
             config_spec=[str(DEFAULT_CONFIG_FILE)],
             model_name="test-model",
@@ -262,10 +261,43 @@ def test_confirm_mode_sets_correct_agent_config():
         # Verify get_agent was called with no explicit mode (defaults to None)
         mock_get_agent.assert_called_once()
         args, kwargs = mock_get_agent.call_args
-        # The config (third positional arg) should not contain mode when yolo=False
-        assert args[2].get("mode") is None
+        # The config (third positional arg) should contain confirm mode when yolo is disabled
+        assert args[2].get("mode") == "confirm"
         # Verify agent.run was called
         mock_agent.run.assert_called_once_with("Test confirm task")
+
+
+def test_no_yolo_config_spec_disables_yolo():
+    """Test that the special no-yolo config alias forces confirm mode."""
+    with (
+        patch("gemmacode.run.mini.configure_if_first_time"),
+        patch("gemmacode.run.mini.get_agent") as mock_get_agent,
+        patch("gemmacode.run.mini.get_model") as mock_get_model,
+        patch("gemmacode.run.mini.get_environment") as mock_get_env,
+        patch("gemmacode.run.mini.get_config_from_spec") as mock_get_config,
+    ):
+        mock_model = Mock()
+        mock_get_model.return_value = mock_model
+        mock_environment = Mock()
+        mock_get_env.return_value = mock_environment
+        mock_get_config.return_value = {"agent": {"system_template": "test"}, "env": {}, "model": {}}
+
+        mock_agent = Mock()
+        mock_agent.run.return_value = {"exit_status": "Success", "submission": "Result"}
+        mock_get_agent.return_value = mock_agent
+
+        main(
+            config_spec=["no-yolo", str(DEFAULT_CONFIG_FILE)],
+            model_name="test-model",
+            task="Test confirm task",
+            output=None,
+            model_class=None,
+            agent_class=None,
+            environment_class=None,
+        )
+
+        args, kwargs = mock_get_agent.call_args
+        assert args[2].get("mode") == "confirm"
 
 
 def test_gemma_code_help():
@@ -284,7 +316,7 @@ def test_gemma_code_help():
     assert "--help" in clean_output
     assert "--config" in clean_output
     assert "--task" in clean_output
-    assert "--yolo" in clean_output
+    assert "--no-yolo" in clean_output
     assert "--output" in clean_output
 
 
@@ -302,7 +334,7 @@ def test_gemma_code_help_with_typer_runner():
     assert "--help" in clean_output
     assert "--config" in clean_output
     assert "--task" in clean_output
-    assert "--yolo" in clean_output
+    assert "--no-yolo" in clean_output
     assert "--output" in clean_output
 
 
