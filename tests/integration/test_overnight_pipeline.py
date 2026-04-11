@@ -15,6 +15,7 @@ from src.gemmacode.orchestrator import (
     SubtaskStatus,
     TestCriterion,
 )
+from src.gemmacode.repomap.models import RepoMapArtifacts
 from src.gemmacode.run.overnight import app, load_plan
 
 
@@ -191,7 +192,9 @@ class TestOvernightPipelineIntegration:
     ):
         """Subtask A should execute before B and C."""
         # Setup mocks
-        mock_build_repo_map.return_value = "repo"
+        mock_repo_map = MagicMock(spec=RepoMapArtifacts)
+        mock_repo_map.repo_map_full = "repo"
+        mock_build_repo_map.return_value = mock_repo_map
         mock_get_config.return_value = {}
         mock_get_model.return_value = MagicMock()
 
@@ -232,7 +235,9 @@ class TestOvernightPipelineIntegration:
     ):
         """Subtask B should only execute after A is passed."""
         # Setup mocks
-        mock_build_repo_map.return_value = "repo"
+        mock_repo_map = MagicMock(spec=RepoMapArtifacts)
+        mock_repo_map.repo_map_full = "repo"
+        mock_build_repo_map.return_value = mock_repo_map
         mock_get_config.return_value = {}
         mock_get_model.return_value = MagicMock()
 
@@ -273,7 +278,9 @@ class TestOvernightPipelineIntegration:
     ):
         """summary.json should have all subtasks with passed status."""
         # Setup mocks
-        mock_build_repo_map.return_value = "repo"
+        mock_repo_map = MagicMock(spec=RepoMapArtifacts)
+        mock_repo_map.repo_map_full = "repo"
+        mock_build_repo_map.return_value = mock_repo_map
         mock_get_config.return_value = {}
         mock_get_model.return_value = MagicMock()
 
@@ -324,7 +331,9 @@ class TestOvernightPipelineIntegration:
     ):
         """Re-loading plan.json should produce identical plan."""
         # Setup mocks
-        mock_build_repo_map.return_value = "repo"
+        mock_repo_map = MagicMock(spec=RepoMapArtifacts)
+        mock_repo_map.repo_map_full = "repo"
+        mock_build_repo_map.return_value = mock_repo_map
         mock_get_config.return_value = {}
         mock_get_model.return_value = MagicMock()
 
@@ -382,7 +391,9 @@ class TestOvernightPipelineIntegration:
     ):
         """Pipeline should continue if one subtask fails (independent subtasks)."""
         # Setup mocks
-        mock_build_repo_map.return_value = "repo"
+        mock_repo_map = MagicMock(spec=RepoMapArtifacts)
+        mock_repo_map.repo_map_full = "repo"
+        mock_build_repo_map.return_value = mock_repo_map
         mock_get_config.return_value = {}
         mock_get_model.return_value = MagicMock()
 

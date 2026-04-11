@@ -15,6 +15,7 @@ from src.gemmacode.orchestrator import (
     SubtaskStatus,
     TestCriterion,
 )
+from src.gemmacode.repomap.models import RepoMapArtifacts
 from src.gemmacode.run.overnight import app, load_plan, save_result
 
 
@@ -224,7 +225,9 @@ class TestOvernightCLI:
     ):
         """--dry-run should decompose but not execute subtasks."""
         # Setup mocks
-        mock_build_repo_map.return_value = "repo map content"
+        mock_repo_map = MagicMock(spec=RepoMapArtifacts)
+        mock_repo_map.repo_map_full = "repo map content"
+        mock_build_repo_map.return_value = mock_repo_map
         mock_get_config_from_spec.return_value = {}
         mock_model = MagicMock()
         mock_get_model.return_value = mock_model
@@ -266,7 +269,9 @@ class TestOvernightCLI:
     ):
         """Pipeline should execute subtasks in topologically sorted order."""
         # Setup mocks
-        mock_build_repo_map.return_value = "repo map"
+        mock_repo_map = MagicMock(spec=RepoMapArtifacts)
+        mock_repo_map.repo_map_full = "repo map"
+        mock_build_repo_map.return_value = mock_repo_map
         mock_get_config_from_spec.return_value = {}
         mock_model = MagicMock()
         mock_get_model.return_value = mock_model
@@ -325,7 +330,9 @@ class TestOvernightCLI:
     ):
         """Pipeline should continue with other subtasks if one fails."""
         # Setup mocks
-        mock_build_repo_map.return_value = "repo map"
+        mock_repo_map = MagicMock(spec=RepoMapArtifacts)
+        mock_repo_map.repo_map_full = "repo map"
+        mock_build_repo_map.return_value = mock_repo_map
         mock_get_config_from_spec.return_value = {}
         mock_model = MagicMock()
         mock_get_model.return_value = mock_model
@@ -397,7 +404,9 @@ class TestOvernightCLI:
     ):
         """Pipeline should generate complete summary.json."""
         # Setup mocks
-        mock_build_repo_map.return_value = "repo map"
+        mock_repo_map = MagicMock(spec=RepoMapArtifacts)
+        mock_repo_map.repo_map_full = "repo map"
+        mock_build_repo_map.return_value = mock_repo_map
         mock_get_config_from_spec.return_value = {}
         mock_model = MagicMock()
         mock_get_model.return_value = mock_model
@@ -463,7 +472,9 @@ class TestOvernightCLI:
     ):
         """Pipeline should save decomposition plan to plan.json."""
         # Setup mocks
-        mock_build_repo_map.return_value = "repo map"
+        mock_repo_map = MagicMock(spec=RepoMapArtifacts)
+        mock_repo_map.repo_map_full = "repo map"
+        mock_build_repo_map.return_value = mock_repo_map
         mock_get_config_from_spec.return_value = {}
         mock_model = MagicMock()
         mock_get_model.return_value = mock_model

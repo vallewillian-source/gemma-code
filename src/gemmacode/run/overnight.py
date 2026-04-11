@@ -94,7 +94,8 @@ def main(
     # Step 1: Build repo map
     console.print("\n[bold]Step 1: Building repository map...[/bold]")
     repo_root = Path.cwd()
-    repo_map = build_repo_map(repo_root)
+    repo_map_artifacts = build_repo_map(repo_root)
+    repo_map = repo_map_artifacts.repo_map_full
     console.print(f"✓ Repository map built ({len(repo_map)} chars)")
 
     # Step 2: Decompose task
