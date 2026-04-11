@@ -90,6 +90,7 @@ Repository = "https://github.com/vallewillian-source/gemma-code"
 
 [project.scripts]
 gemma-code = "gemmacode.run.mini:app"
+gemma-code-overnight = "gemmacode.run.overnight:app"
 gemma-code-extra = "gemmacode.run.utilities.mini_extra:main"
 gemma-code-e = "gemmacode.run.utilities.mini_extra:main"
 

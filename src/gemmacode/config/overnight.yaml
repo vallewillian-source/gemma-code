@@ -1,0 +1,12 @@
+agent:
+  step_limit: 40
+  cost_limit: 0.0
+  mode: yolo
+
+model:
+  model_kwargs:
+    num_ctx: 40960
+  cost_tracking: ignore_errors
+
+environment:
+  timeout: 60
