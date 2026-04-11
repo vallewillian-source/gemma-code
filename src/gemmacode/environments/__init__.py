@@ -9,6 +9,7 @@ _ENVIRONMENT_MAPPING = {
     "docker": "gemmacode.environments.docker.DockerEnvironment",
     "singularity": "gemmacode.environments.singularity.SingularityEnvironment",
     "local": "gemmacode.environments.local.LocalEnvironment",
+    "restricted": "gemmacode.environments.restricted.RestrictedEnvironment",
     "swerex_docker": "gemmacode.environments.extra.swerex_docker.SwerexDockerEnvironment",
     "swerex_modal": "gemmacode.environments.extra.swerex_modal.SwerexModalEnvironment",
     "bubblewrap": "gemmacode.environments.extra.bubblewrap.BubblewrapEnvironment",
