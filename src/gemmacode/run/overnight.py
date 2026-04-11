@@ -103,7 +103,8 @@ def main(
     try:
         orchestrator_config = get_config_from_spec("overnight.yaml")
         orchestrator_model = get_model(
-            orchestrator_config.get("model", {}).get("model_name", "deepseek/deepseek-chat")
+            orchestrator_config.get("model", {}).get("model_name", "deepseek/deepseek-chat"),
+            orchestrator_config.get("model", {})
         )
         orchestrator = OrchestratorAgent(
             orchestrator_model,

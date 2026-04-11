@@ -73,8 +73,23 @@ class OrchestratorAgent:
 
         for attempt in range(self.max_retries):
             try:
-                response = self.model.query(messages)
-                content = response.get("content", "")
+                # For models that parse tool calls, we bypass the action parsing
+                # since we don't need tools for text-only JSON generation
+                if hasattr(self.model, '_query') and hasattr(self.model, '_prepare_messages_for_api') and hasattr(self.model, 'config'):
+                    # Call _query but without tools by using litellm directly
+                    import litellm
+                    prepared_messages = self.model._prepare_messages_for_api(messages)
+                    raw_response = litellm.completion(
+                        model=self.model.config.model_name,
+                        messages=prepared_messages,
+                        **(self.model.config.model_kwargs)
+                    )
+                    content = raw_response.choices[0].message.content or ""
+                    response_content = content
+                else:
+                    response = self.model.query(messages)
+                    content = response.get("content", "")
+                    response_content = content
 
                 # Extract JSON from response
                 plan_dict = self._extract_json(content)
@@ -88,7 +103,7 @@ class OrchestratorAgent:
 
                 if attempt < self.max_retries - 1:
                     # Add error to conversation and retry
-                    messages.append(self.model.format_message(role="assistant", content=response.get("content", "")))
+                    messages.append(self.model.format_message(role="assistant", content=response_content))
                     error_instruction = (
                         f"The JSON you provided has an error:\n{error_msg}\n\n"
                         "Please fix it and provide a valid JSON response that conforms to the DecompositionPlan schema."
