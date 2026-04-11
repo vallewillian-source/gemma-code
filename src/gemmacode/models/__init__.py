@@ -58,6 +58,15 @@ def get_model(input_model_name: str | None = None, config: dict | None = None) -
         model_kwargs.setdefault("num_ctx", local_model_kwargs["num_ctx"])
         config.setdefault("cost_tracking", "ignore_errors")
 
+    if resolved_model_name.startswith("deepseek/"):
+        model_kwargs = config.setdefault("model_kwargs", {})
+        # DeepSeek API key and base URL from environment
+        if api_key := os.getenv("DEEPSEEK_API_KEY"):
+            model_kwargs.setdefault("api_key", api_key)
+        if base_url := os.getenv("DEEPSEEK_BASE_URL"):
+            model_kwargs.setdefault("base_url", base_url)
+        config.setdefault("cost_tracking", "ignore_errors")
+
     model_class = get_model_class(resolved_model_name, config.pop("model_class", ""))
 
     if (

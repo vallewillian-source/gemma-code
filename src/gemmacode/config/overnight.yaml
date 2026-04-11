@@ -4,6 +4,7 @@ agent:
   mode: yolo
 
 model:
+  model_name: deepseek/deepseek-chat
   model_kwargs:
     num_ctx: 40960
   cost_tracking: ignore_errors
