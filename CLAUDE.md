@@ -166,3 +166,88 @@ Bash commands agents can run are defined in YAML config files. See `src/gemmacod
 
 ### Version
 Current version is in `src/gemmacode/__init__.py` (`__version__`).
+
+## Overnight Orchestration System
+
+The overnight pipeline is a complete two-level task decomposition and execution system:
+
+### Components
+
+1. **OrchestratorAgent** (`src/gemmacode/agents/orchestrator.py`)
+   - Takes a high-level task and repository context
+   - Calls DeepSeek API to decompose into structured subtasks
+   - Returns `DecompositionPlan` with validated subtask specs
+   - Retries up to 3 times on JSON parsing failure
+   - Uses litellm directly (no tool calling) for clean text-only generation
+
+2. **SubtaskRunner** (`src/gemmacode/agents/subtask_runner.py`)
+   - Executes individual subtasks using a small local model (default: ollama/qwen3-coder:30b)
+   - Runs acceptance tests and retries on failure
+   - Complexity-based step limits: low=20, medium=40, high=60
+   - Creates RestrictedEnvironment with allowlist of readable files
+   - Returns SubtaskResult with status (PASSED/FAILED), error messages, test outputs
+
+3. **Topological Sort** (`src/gemmacode/orchestrator/ordering.py`)
+   - Kahn's algorithm for dependency ordering
+   - Validates DAG (no cycles), preserves original order within levels
+   - Used to execute subtasks respecting dependencies
+
+4. **Overnight CLI** (`src/gemmacode/run/overnight.py`)
+   - Entry point: `gemma-code-overnight`
+   - Options: `--task` (required), `--output` (optional), `--heuristics` (optional), `--dry-run` (flag)
+   - Workflow: build repo map → decompose → (optional dry-run) → topologically sort → execute → summarize
+   - Saves: plan.json, result_*.json, summary.json
+   - Non-blocking: continues if individual subtasks fail (summarizes failures)
+
+### Configuration
+
+**overnight.yaml:**
+```yaml
+agent:
+  step_limit: 40          # Max steps per orchestrator call
+  cost_limit: 0.0         # No cost limit (set > 0 to enforce)
+  mode: yolo              # Continue on minor errors
+
+model:
+  model_name: deepseek/deepseek-chat
+  model_kwargs:
+    num_ctx: 40960        # Large context for decomposition
+  cost_tracking: ignore_errors  # DeepSeek costs not fully tracked
+
+environment:
+  timeout: 60             # Subtask execution timeout
+```
+
+### Key Implementation Details
+
+- **OrchestratorAgent bypasses tool parsing**: Calls `litellm.completion()` directly without the BASH_TOOL to avoid FormatError on text-only JSON responses
+- **API Key Injection**: `get_model()` automatically injects DEEPSEEK_API_KEY and DEEPSEEK_BASE_URL from environment
+- **Heuristics System**: Uses YAML-based rules in `src/gemmacode/config/heuristics/*.yaml` to guide decomposition
+- **RestrictedEnvironment**: Limits file access to specified files in spec to prevent accidental modification of unrelated files
+- **Test Verification Loop**: Each subtask must pass acceptance tests; failures trigger retry with feedback
+
+### Testing
+
+- **180 tests passing** covering all components
+- Integration tests verify execution order, dependency blocking, failure handling
+- Mock mocks for DeepSeek when needed; real API calls in production
+
+### Common Workflows
+
+```bash
+# Dry-run decomposition only
+gemma-code-overnight --task "..." --dry-run
+
+# Full execution with output
+gemma-code-overnight --task "..." --output /path/to/output
+
+# Apply specific heuristics
+gemma-code-overnight --task "..." --heuristics python_project testing_patterns
+```
+
+### Troubleshooting
+
+- **Empty API responses**: Usually means tools=[] was not used (OrchestratorAgent already fixed this)
+- **Subtask failures**: Check result_*.json in output directory for detailed error messages
+- **Large tasks**: Increase num_ctx in overnight.yaml if task description is very long
+- **Cost tracking errors**: Set cost_tracking: ignore_errors in model config
