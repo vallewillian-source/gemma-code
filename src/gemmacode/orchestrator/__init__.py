@@ -4,6 +4,10 @@ from gemmacode.orchestrator.heuristics import (
     build_heuristics_prompt,
     load_all_heuristics,
 )
+from gemmacode.orchestrator.ordering import (
+    CyclicDependencyError,
+    topological_sort,
+)
 from gemmacode.orchestrator.schema import (
     DecompositionPlan,
     SubtaskResult,
@@ -20,4 +24,6 @@ __all__ = [
     "SubtaskResult",
     "load_all_heuristics",
     "build_heuristics_prompt",
+    "topological_sort",
+    "CyclicDependencyError",
 ]
